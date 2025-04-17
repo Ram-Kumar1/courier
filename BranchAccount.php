@@ -224,12 +224,7 @@ include 'dbConn.php';
                                         <input type="text" class="form-control" id="username" name="username" readonly>
                                     </div>
                                 </div>
-                                <!-- <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="password">Password</label>
-                                        <input type="password" class="form-control" id="password" name="password" readonly>
-                                    </div>
-                                </div> -->
+                             
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="totalExpense">Total Expense Amount</label>
@@ -274,17 +269,13 @@ include 'dbConn.php';
 
     </div>
 
-    <!-- Required JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Select2 Filter -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- Table Filter -->
-    <script src="./js/ddtf.js"></script>
-    <!-- Prevent Number Scrolling -->
-    <script src="./js/chits/numberInputPreventScroll.js"></script>
+<!-- Select2 Fileter -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Table Filter -->
+<script src="./js/ddtf.js"></script>
+<!-- Prevent Number Scrolling -->
+<script src="./js/chits/numberInputPreventScroll.js"></script>
 
     <script>
         $(document).ready(function() {

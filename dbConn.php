@@ -4,7 +4,7 @@
 $dbhost = "localhost";
 $dbuser = "root";
 $dbpass = "";
-$dbname = "courier";
+$dbname = "courier-new";
 
 // cloud
 // $dbuser = "litzp5lx_finnest";
