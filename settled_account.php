@@ -86,7 +86,7 @@
                                                     <th>Collection Amount</th>
                                                     <th>Payment Type</th>
                                                     <th>Notes</th>
-                                                    <th>Edit</th>
+                                                    <!-- <th>Edit</th> -->
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -94,27 +94,27 @@
                                                 include 'dbConn.php';
 
                                                 $query = "
-    SELECT 
-        ba.*, 
-        bd.BRANCH_NAME, 
-        bd.BRANCH_MOBILE,
-        bd.ALTERNATIVE_MOBILE,
-        bd.PLACE,
-        bd.USER_NAME,
-        bd.PASSWORD,
-        bd.PAID_COMMISSION,
-        bd.TOPAID_COMMISSION,
-        bd.ADDRESS,
-        bd.TOTAL_EXPENSE_AMOUNT
-    FROM 
-        branch_account ba
-    LEFT JOIN 
-        branch_details bd 
-    ON 
-        ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
-    WHERE 
-        ba.IS_DELETE = 0
-";
+                                                         SELECT 
+                                                         ba.*, 
+                                                         bd.BRANCH_NAME, 
+                                                         bd.BRANCH_MOBILE,
+                                                         bd.ALTERNATIVE_MOBILE,
+                                                         bd.PLACE,
+                                                         bd.USER_NAME,
+                                                         bd.PASSWORD,
+                                                         bd.PAID_COMMISSION,
+                                                         bd.TOPAID_COMMISSION,
+                                                         bd.ADDRESS,
+                                                         bd.TOTAL_EXPENSE_AMOUNT
+                                                         FROM 
+                                                         branch_account ba
+                                                         LEFT JOIN 
+                                                         branch_details bd 
+                                                         ON 
+                                                         ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
+                                                         WHERE 
+                                                         ba.IS_DELETE = 0
+                                                         ";
 
                                                 $result = mysqli_query($conn, $query);
 
@@ -143,19 +143,19 @@
                                                             if ($month && $year && $branchId) {
                                                                 $date = DateTime::createFromFormat('!m', $month);
                                                                 echo '<a href="#" data-toggle="modal" data-target="#branchModal" 
-                    data-month="' . htmlspecialchars($month) . '" 
-                    data-year="' . htmlspecialchars($year) . '" 
-                    data-branch="' . htmlspecialchars($branchId) . '"
-                    data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
-                    data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
-                    data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
-                    data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
-                    data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
-                    data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
-                    data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
-                    data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
-                    data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
-                    data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
+                                                                 data-month="' . htmlspecialchars($month) . '" 
+                                                                 data-year="' . htmlspecialchars($year) . '" 
+                                                                 data-branch="' . htmlspecialchars($branchId) . '"
+                                                                 data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
+                                                                 data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
+                                                                 data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
+                                                                 data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
+                                                                 data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
+                                                                 data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
+                                                                 data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
+                                                                 data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
+                                                                 data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
+                                                                 data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
                                                                 echo htmlspecialchars($date->format('M') . '-' . $year);
                                                                 echo '</a>';
                                                             }
@@ -172,9 +172,9 @@
                                                             echo "<td>" . htmlspecialchars($row['COLLECTION_AMOUNT'] ?? '') . "</td>";
                                                             echo "<td>" . htmlspecialchars($row['PAYMENT_TYPE'] ?? '') . "</td>";
                                                             echo "<td>" . htmlspecialchars($row['NOTES'] ?? '') . "</td>";
-                                   
 
-                                                            echo "<td><a href='branchAccountEdit.php?id=" . $row['BRANCH_ACCOUNT_ID'] . "'><i class='fa fa-edit'></i></a></td>";
+
+                                                            // echo "<td><a href='branchAccountEdit.php?id=" . $row['BRANCH_ACCOUNT_ID'] . "'><i class='fa fa-edit'></i></a></td>";
                                                             echo "</tr>";
                                                         }
                                                     }
@@ -242,12 +242,7 @@
                                         <input type="text" class="form-control" id="username" name="username" readonly>
                                     </div>
                                 </div>
-                                <!-- <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="password">Password</label>
-                                        <input type="password" class="form-control" id="password" name="password" readonly>
-                                    </div>
-                                </div> -->
+
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="totalExpense">Total Expense Amount</label>
@@ -291,19 +286,13 @@
         <?php include 'footer.php'; ?>
 
     </div>
-
-    <!-- Required JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Select2 Filter -->
+    <!-- Select2 Fileter -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Table Filter -->
     <script src="./js/ddtf.js"></script>
     <!-- Prevent Number Scrolling -->
     <script src="./js/chits/numberInputPreventScroll.js"></script>
-
     <script>
         $(document).ready(function() {
             // Initialize table filter
