@@ -93,6 +93,27 @@
                                                 <?php
                                                 include 'dbConn.php';
 
+
+                                                $userName = $_SESSION['userName'] ?? null;
+                                                $branchName = $_SESSION['admin'] ?? null;
+
+                                                if ($branchName) {
+                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                    $stmt->bind_param("s", $branchName);
+                                                    $stmt->execute();
+                                                    $result = $stmt->get_result();
+
+                                                    if ($row = $result->fetch_assoc()) {
+                                                        $branchId = $row['BRANCH_OFFICE_ID'];
+                                                    } else {
+                                                        echo "Branch not found.";
+                                                    }
+
+                                                    $stmt->close();
+                                                } else {
+                                                    echo "Branch name not set.";
+                                                }
+
                                                 $query = "
                                                          SELECT 
                                                          ba.*, 
@@ -113,7 +134,8 @@
                                                          ON 
                                                          ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
                                                          WHERE 
-                                                         ba.IS_DELETE = 0
+                                                         ba.IS_DELETE = 0 AND ba.BRANCH_ID = $branchId
+                                            
                                                          ";
 
                                                 $result = mysqli_query($conn, $query);

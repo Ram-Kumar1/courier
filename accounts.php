@@ -63,7 +63,28 @@ include 'dbConn.php';
                                                 <?php
                                                 include 'dbConn.php';
 
-                                                $getAccount = "SELECT * FROM branch_account WHERE IS_DELETE = 0 AND IS_REQUEST = 1";
+                                                $userName = $_SESSION['userName'] ?? null;
+                                                $branchName = $_SESSION['admin'] ?? null;
+
+                                                if ($branchName) {
+                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                    $stmt->bind_param("s", $branchName);
+                                                    $stmt->execute();
+                                                    $result = $stmt->get_result();
+
+                                                    if ($row = $result->fetch_assoc()) {
+                                                        $branchId = $row['BRANCH_OFFICE_ID'];
+                                                    } else {
+                                                        echo "Branch not found.";
+                                                    }
+
+                                                    $stmt->close();
+                                                } else {
+                                                    echo "Branch name not set.";
+                                                }
+
+
+                                                $getAccount = "SELECT * FROM branch_account WHERE IS_DELETE = 0 AND IS_REQUEST = 1 AND BRANCH_ID = $branchId";
                                                 $result = mysqli_query($conn, $getAccount);
 
                                                 if (!$result) {
@@ -248,91 +269,91 @@ include 'dbConn.php';
 
 
 
-<!-- Cancel Modal -->
-<div id="cancelModal">
-    <div class="modal-content">
-        <h3>❌ Cancel Request</h3>
-        <input type="text" id="cancelReason" placeholder="Enter reason..." />
-        <div class="modal-buttons">
-            <button class="btn-confirm" onclick="updateCancel()">Cancel Now</button>
-            <button class="btn-close" onclick="$('#cancelModal').hide();">Close</button>
-        </div>
-        <input type="hidden" id="cancelID" />
-    </div>
-</div>
+                <!-- Cancel Modal -->
+                <div id="cancelModal">
+                    <div class="modal-content">
+                        <h3>❌ Cancel Request</h3>
+                        <input type="text" id="cancelReason" placeholder="Enter reason..." />
+                        <div class="modal-buttons">
+                            <button class="btn-confirm" onclick="updateCancel()">Cancel Now</button>
+                            <button class="btn-close" onclick="$('#cancelModal').hide();">Close</button>
+                        </div>
+                        <input type="hidden" id="cancelID" />
+                    </div>
+                </div>
 
-<!-- Modal Styling -->
-<style>
-    #cancelModal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
+                <!-- Modal Styling -->
+                <style>
+                    #cancelModal {
+                        display: none;
+                        position: fixed;
+                        z-index: 9999;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.5);
+                    }
 
-    .modal-content {
-        position: absolute;
-        top: 30%;
-        left: 50%;
-        transform: translate(-50%, -30%);
-        background: #fff;
-        padding: 25px;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        text-align: center;
-    }
+                    .modal-content {
+                        position: absolute;
+                        top: 30%;
+                        left: 50%;
+                        transform: translate(-50%, -30%);
+                        background: #fff;
+                        padding: 25px;
+                        border-radius: 10px;
+                        width: 90%;
+                        max-width: 400px;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                        text-align: center;
+                    }
 
-    .modal-content h3 {
-        margin-bottom: 20px;
-        color: #c0392b;
-    }
+                    .modal-content h3 {
+                        margin-bottom: 20px;
+                        color: #c0392b;
+                    }
 
-    .modal-content input[type="text"] {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        margin-bottom: 20px;
-    }
+                    .modal-content input[type="text"] {
+                        width: 100%;
+                        padding: 10px;
+                        font-size: 16px;
+                        border: 1px solid #ccc;
+                        border-radius: 6px;
+                        margin-bottom: 20px;
+                    }
 
-    .modal-buttons {
-        display: flex;
-        justify-content: space-between;
-    }
+                    .modal-buttons {
+                        display: flex;
+                        justify-content: space-between;
+                    }
 
-    .btn-confirm {
-        background-color: #e74c3c;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
+                    .btn-confirm {
+                        background-color: #e74c3c;
+                        color: white;
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                    }
 
-    .btn-close {
-        background-color: #bdc3c7;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
+                    .btn-close {
+                        background-color: #bdc3c7;
+                        color: white;
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                    }
 
-    .btn-confirm:hover {
-        background-color: #c0392b;
-    }
+                    .btn-confirm:hover {
+                        background-color: #c0392b;
+                    }
 
-    .btn-close:hover {
-        background-color: #95a5a6;
-    }
-</style>
+                    .btn-close:hover {
+                        background-color: #95a5a6;
+                    }
+                </style>
 
 
 
@@ -420,45 +441,44 @@ include 'dbConn.php';
 
 
     function cancel(el) {
-    let id = $(el).attr('data-id');
-    $('#cancelID').val(id);           // store ID in hidden input
-    $('#cancelReason').val('');       // clear previous reason
-    $('#cancelModal').show();         // show modal
-}
-
-function updateCancel() {
-    let id = $('#cancelID').val();
-    let reason = $('#cancelReason').val().trim();
-
-    if (!reason) {
-        alert("⚠️ Please enter a cancellation reason.");
-        return;
+        let id = $(el).attr('data-id');
+        $('#cancelID').val(id); // store ID in hidden input
+        $('#cancelReason').val(''); // clear previous reason
+        $('#cancelModal').show(); // show modal
     }
 
-    $.ajax({
-        type: 'POST',
-        url: 'dataOperations.php',
-        data: {
-            Calcel: 1,
-            Id: id,
-            Reason: reason
-        },
-        success: function(response) {
-            console.log(response);
-            if (response.toString().startsWith("Update Successful")) {
-                alert("✔️ Cancelled successfully!");
-                $('#cancelModal').hide();
-                window.location.reload();
-            } else {
-                alert("❌ Error: " + response);
-            }
-        },
-        error: function(xhr, status, error) {
-            alert("🚨 AJAX error: " + error);
-        }
-    });
-}
+    function updateCancel() {
+        let id = $('#cancelID').val();
+        let reason = $('#cancelReason').val().trim();
 
+        if (!reason) {
+            alert("⚠️ Please enter a cancellation reason.");
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: 'dataOperations.php',
+            data: {
+                Calcel: 1,
+                Id: id,
+                Reason: reason
+            },
+            success: function(response) {
+                console.log(response);
+                if (response.toString().startsWith("Update Successful")) {
+                    alert("✔️ Cancelled successfully!");
+                    $('#cancelModal').hide();
+                    window.location.reload();
+                } else {
+                    alert("❌ Error: " + response);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("🚨 AJAX error: " + error);
+            }
+        });
+    }
 </script>
 
 </html>

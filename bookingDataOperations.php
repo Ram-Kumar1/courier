@@ -183,7 +183,7 @@ if (isset($_POST['isNewBooking'])) {
                     $existingCustomer = $checkCustomerResult->fetch_assoc();
                     $customerId = $existingCustomer['CUSTOMER_ID'];
 
-                    // ✅ Pass conditions as array
+             
                     $dbOperator->updateData('customer_details', $customerData, ["CUSTOMER_ID" => $customerId]);
                 } else {
                     $customerId = $dbOperator->insertData('customer_details', $customerData);
@@ -211,6 +211,7 @@ if (isset($_POST['isNewBooking'])) {
                         $dbOperator->updateData('customer_account', $accountData, ["CUSTOMER_ID" => $customerId]);
                     } else {
                         $accountData = array(
+                            "BRANCH_ID" => $branchId,
                             "CUSTOMER_ID" => $customerId,
                             "CUSTOMER_NAME" => $customer,
                             "OUTSTANDING_AMOUNT" => $totalAmount,
@@ -673,6 +674,7 @@ if (isset($_POST['UpdatePayment'])) {
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
         $oldPaidAmt = $row['PAID_AMOUNT'];
+        $branchId = $row['BRANCH_ID'];
     } else {
         $oldPaidAmt = 0; 
     }
@@ -690,6 +692,7 @@ if (isset($_POST['UpdatePayment'])) {
 
 
     $data1 = array(
+        'BRANCH_ID' => $branchId,
         'CUSTOMER_ID' => $customerId,
         'BALANCE_AMOUNT' => $balanceamt,
         'PAID_AMOUNT' => $paidAmount,

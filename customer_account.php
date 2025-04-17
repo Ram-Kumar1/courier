@@ -78,8 +78,31 @@
                                             </thead>
                                             <tbody>
                                                 <?php
+                                            $userName = $_SESSION['userName'] ?? null;
+                                            $branchName = $_SESSION['admin'] ?? null;
+
+                                            if ($branchName) {
+                                                $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                $stmt->bind_param("s", $branchName);
+                                                $stmt->execute();
+                                                $result = $stmt->get_result();
+
+                                                if ($row = $result->fetch_assoc()) {
+                                               $branchId = $row['BRANCH_OFFICE_ID'];
+                                                } else {
+                                                    echo "Branch not found.";
+                                                }
+
+                                                $stmt->close();
+                                            } else {
+                                                echo "Branch name not set.";
+                                            }
+
+
+
                                                
-                                                $getCUstomerAccount = "SELECT * FROM customer_account";
+                                              
+                                                $getCUstomerAccount = "SELECT * FROM customer_account WHERE BRANCH_ID ='$branchId' ";
                                                 $result = mysqli_query($conn, $getCUstomerAccount);
 
                                                 $sno = 1;
@@ -129,17 +152,13 @@
 
     </div>
 
-    <!-- Required JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Select2 Filter -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- Table Filter -->
-    <script src="./js/ddtf.js"></script>
-    <!-- Prevent Number Scrolling -->
-    <script src="./js/chits/numberInputPreventScroll.js"></script>
+ <!-- Select2 Fileter -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Table Filter -->
+<script src="./js/ddtf.js"></script>
+<!-- Prevent Number Scrolling -->
+<script src="./js/chits/numberInputPreventScroll.js"></script>
 
     <script>
         $(document).ready(function() {
