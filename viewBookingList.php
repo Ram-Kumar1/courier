@@ -1,13 +1,4 @@
-<?php
 
-include 'dbConn.php';
-
-date_default_timezone_set('Asia/Kolkata');
-$date_1 = date('d-m-Y H:i');
-$date = date('Y-m-d', strtotime($date_1));
-
-
-?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -40,6 +31,11 @@ $date = date('Y-m-d', strtotime($date_1));
     <div id="main-wrapper">
 
         <?php
+        
+date_default_timezone_set('Asia/Kolkata');
+$date_1 = date('d-m-Y H:i');
+$date = date('Y-m-d', strtotime($date_1));
+
         include 'header.php';
 
 
@@ -55,24 +51,30 @@ $date = date('Y-m-d', strtotime($date_1));
         END AS BOOKING_STAUTS
         FROM booking_details BD";
 
-$userName = $_SESSION['userName'] ?? 'GEST';
-$branchName = $_SESSION['admin'] ?? 'GETS';
+$userName = $_SESSION['userName'] ?? 'GUEST';
+$branchName = $_SESSION['admin'] ?? 'GUEST';
 
-// Initialize WHERE clause
+// Start base SQL query
+$sql = "SELECT * FROM booking_details BD";
+
+// Build WHERE clause
 $whereClauses = ["BD.IS_DELETE = 0"];
 
-// Check user permissions
 if (strtolower($userName) !== 'admin') {
-    $whereClauses[] = "BD.FROM_PLACE = '$branchName'";
+    // Escape user input to prevent SQL injection
+    $safeBranchName = mysqli_real_escape_string($conn, $branchName);
+    $whereClauses[] = "BD.FROM_PLACE = '$safeBranchName'";
 }
 
-// Join WHERE clauses if any
+// Append WHERE clause if needed
 if (!empty($whereClauses)) {
     $sql .= " WHERE " . implode(" AND ", $whereClauses);
 }
 
 $sql .= " ORDER BY BD.BOOKING_ID DESC";
-        ?>
+?>
+
+        
         <!--**********************************
             Content body start
         ***********************************-->

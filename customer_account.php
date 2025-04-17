@@ -78,58 +78,73 @@
                                             </thead>
                                             <tbody>
                                                 <?php
-                                            $userName = $_SESSION['userName'] ?? null;
-                                            $branchName = $_SESSION['admin'] ?? null;
+                                                $userName = $_SESSION['userName'] ?? null;
+                                                $branchName = $_SESSION['admin'] ?? null;
+                                                $branchId = null;
 
-                                            if ($branchName) {
-                                                $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
-                                                $stmt->bind_param("s", $branchName);
-                                                $stmt->execute();
-                                                $result = $stmt->get_result();
+                                                // Get branch ID if not admin
+                                                if (strtolower($userName) !== 'admin' && $branchName) {
+                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                    $stmt->bind_param("s", $branchName);
+                                                    $stmt->execute();
+                                                    $result = $stmt->get_result();
 
-                                                if ($row = $result->fetch_assoc()) {
-                                               $branchId = $row['BRANCH_OFFICE_ID'];
-                                                } else {
-                                                    echo "Branch not found.";
+                                                    if ($row = $result->fetch_assoc()) {
+                                                        $branchId = $row['BRANCH_OFFICE_ID'];
+                                                    } else {
+                                                        echo "<tr><td colspan='7' class='text-center'>Branch not found.</td></tr>";
+                                                    }
+
+                                                    $stmt->close();
                                                 }
 
-                                                $stmt->close();
-                                            } else {
-                                                echo "Branch name not set.";
-                                            }
+                                                // Fetch customer accounts
+                                                if ($userName === 'admin') {
+                                                    $query = "SELECT * FROM customer_account";
+                                                    $stmt = $conn->prepare($query);
+                                                } elseif ($branchId) {
+                                                    $query = "SELECT * FROM customer_account WHERE BRANCH_ID = ?";
+                                                    $stmt = $conn->prepare($query);
+                                                    $stmt->bind_param("i", $branchId);
+                                                } else {
+                                                    echo "<tr><td colspan='7' class='text-center'>Branch name not set or branch ID missing.</td></tr>";
+                                                    exit;
+                                                }
 
-
-
-                                               
-                                              
-                                                $getCUstomerAccount = "SELECT * FROM customer_account WHERE BRANCH_ID ='$branchId' ";
-                                                $result = mysqli_query($conn, $getCUstomerAccount);
-
+                                                $stmt->execute();
+                                                $result = $stmt->get_result();
                                                 $sno = 1;
 
-                                                if ($result && mysqli_num_rows($result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($result)) {
-                                                        echo "<tr class='text-center'>";
-                                                        echo "<td>" . $sno++ . "</td>";
-                                                        echo "<td>" . strtolower(date('d-M-Y', strtotime($row['CREATED_AT']))) . "</td>";
-                                                        echo "<td>" . htmlspecialchars($row['CUSTOMER_NAME']) . "</td>";
-                                                        echo "<td>" . htmlspecialchars($row['OUTSTANDING_AMOUNT'] - $row['PAID_AMOUNT'] ?? 'N/A') . "</td>";
-                                                        echo "<td>
-                                                        <a class='a-edit-icon' href='editCustomerAccount.php?id=" . $row['CUSTOMER_ID'] . "'>
-                                                            <i class='fa fa-pencil font-x-large' aria-hidden='true'></i>
-                                                        </a>
-                                                    </td>";
-                                                    
+                                                if ($result && $result->num_rows > 0) {
+                                                    while ($row = $result->fetch_assoc()) {
+                                                        $createdAt = !empty($row['CREATED_AT']) ? strtolower(date('d-M-Y', strtotime($row['CREATED_AT']))) : 'N/A';
+                                                        $customerName = htmlspecialchars($row['CUSTOMER_NAME'] ?? 'N/A');
+                                                        $outstanding = isset($row['OUTSTANDING_AMOUNT'], $row['PAID_AMOUNT']) ?
+                                                            ($row['OUTSTANDING_AMOUNT'] - $row['PAID_AMOUNT']) : 'N/A';
+                                                        $customerId = htmlspecialchars($row['CUSTOMER_ID']);
 
+                                                        echo "<tr class='text-center'>";
+                                                        echo "<td>{$sno}</td>";
+                                                        echo "<td>{$createdAt}</td>";
+                                                        echo "<td>{$customerName}</td>";
+                                                        echo "<td>{$outstanding}</td>";
+                                                        echo "<td>
+                <a class='a-edit-icon' href='editCustomerAccount.php?id={$customerId}'>
+                    <i class='fa fa-pencil font-x-large' aria-hidden='true'></i>
+                </a>
+              </td>";
                                                         echo "</tr>";
+                                                        $sno++;
                                                     }
                                                 } else {
                                                     echo "<tr><td colspan='7' class='text-center'>No records found</td></tr>";
                                                 }
 
-                                                mysqli_close($conn);
+                                                $stmt->close();
+                                                $conn->close();
                                                 ?>
                                             </tbody>
+
                                         </table>
 
 
@@ -152,13 +167,13 @@
 
     </div>
 
- <!-- Select2 Fileter -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- Table Filter -->
-<script src="./js/ddtf.js"></script>
-<!-- Prevent Number Scrolling -->
-<script src="./js/chits/numberInputPreventScroll.js"></script>
+    <!-- Select2 Fileter -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Table Filter -->
+    <script src="./js/ddtf.js"></script>
+    <!-- Prevent Number Scrolling -->
+    <script src="./js/chits/numberInputPreventScroll.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -196,10 +211,6 @@
             ];
             return months[parseInt(month) - 1] || '';
         }
-
-
-
-
     </script>
 </body>
 

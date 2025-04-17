@@ -91,65 +91,85 @@
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                include 'dbConn.php';
-
+                                              
 
                                                 $userName = $_SESSION['userName'] ?? null;
                                                 $branchName = $_SESSION['admin'] ?? null;
-
-                                                if ($branchName) {
-                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
-                                                    $stmt->bind_param("s", $branchName);
-                                                    $stmt->execute();
-                                                    $result = $stmt->get_result();
-
-                                                    if ($row = $result->fetch_assoc()) {
-                                                        $branchId = $row['BRANCH_OFFICE_ID'];
-                                                    } else {
-                                                        echo "Branch not found.";
-                                                    }
-
-                                                    $stmt->close();
-                                                } else {
-                                                    echo "Branch name not set.";
-                                                }
-
-                                                $query = "
-                                                         SELECT 
-                                                         ba.*, 
-                                                         bd.BRANCH_NAME, 
-                                                         bd.BRANCH_MOBILE,
-                                                         bd.ALTERNATIVE_MOBILE,
-                                                         bd.PLACE,
-                                                         bd.USER_NAME,
-                                                         bd.PASSWORD,
-                                                         bd.PAID_COMMISSION,
-                                                         bd.TOPAID_COMMISSION,
-                                                         bd.ADDRESS,
-                                                         bd.TOTAL_EXPENSE_AMOUNT
-                                                         FROM 
-                                                         branch_account ba
-                                                         LEFT JOIN 
-                                                         branch_details bd 
-                                                         ON 
-                                                         ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
-                                                         WHERE 
-                                                         ba.IS_DELETE = 0 AND ba.BRANCH_ID = $branchId
-                                            
-                                                         ";
-
-                                                $result = mysqli_query($conn, $query);
-
-                                                if (!$result) {
-                                                    die("Query failed: " . mysqli_error($conn));
-                                                }
-
                                                 $sno = 0;
                                                 $dataFound = false;
 
-                                                if (mysqli_num_rows($result) > 0) {
+                                                // Default query for admin
+                                                if (strtolower($userName) === "admin") {
+                                                    $query = "
+        SELECT 
+            ba.*, 
+            bd.BRANCH_NAME, 
+            bd.BRANCH_MOBILE,
+            bd.ALTERNATIVE_MOBILE,
+            bd.PLACE,
+            bd.USER_NAME,
+            bd.PASSWORD,
+            bd.PAID_COMMISSION,
+            bd.TOPAID_COMMISSION,
+            bd.ADDRESS,
+            bd.TOTAL_EXPENSE_AMOUNT
+        FROM 
+            branch_account ba
+        LEFT JOIN 
+            branch_details bd 
+        ON 
+            ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
+        WHERE 
+            ba.IS_DELETE = 0
+    ";
+                                                    $result = mysqli_query($conn, $query);
+                                                } else {
+                                                    // If user is not admin, get branch_id first
+                                                    if ($branchName) {
+                                                        $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                        $stmt->bind_param("s", $branchName);
+                                                        $stmt->execute();
+                                                        $branchResult = $stmt->get_result();
+
+                                                        if ($branchRow = $branchResult->fetch_assoc()) {
+                                                            $branchId = $branchRow['BRANCH_OFFICE_ID'];
+
+                                                            $query = "
+                SELECT 
+                    ba.*, 
+                    bd.BRANCH_NAME, 
+                    bd.BRANCH_MOBILE,
+                    bd.ALTERNATIVE_MOBILE,
+                    bd.PLACE,
+                    bd.USER_NAME,
+                    bd.PASSWORD,
+                    bd.PAID_COMMISSION,
+                    bd.TOPAID_COMMISSION,
+                    bd.ADDRESS,
+                    bd.TOTAL_EXPENSE_AMOUNT
+                FROM 
+                    branch_account ba
+                LEFT JOIN 
+                    branch_details bd 
+                ON 
+                    ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
+                WHERE 
+                    ba.IS_DELETE = 0 AND ba.BRANCH_ID = $branchId
+            ";
+
+                                                            $result = mysqli_query($conn, $query);
+                                                        } else {
+                                                            echo '<tr><td colspan="13" class="text-center">Branch not found.</td></tr>';
+                                                        }
+                                                        $stmt->close();
+                                                    } else {
+                                                        echo '<tr><td colspan="13" class="text-center">Branch name not set.</td></tr>';
+                                                    }
+                                                }
+
+                                                // Render table rows if result is available
+                                                if (isset($result) && mysqli_num_rows($result) > 0) {
                                                     while ($row = mysqli_fetch_assoc($result)) {
-                                                        // Check if ADMIN_OUTSTANDING_AMOUNT == PAID_AMOUNT
                                                         if (floatval($row['ADMIN_OUTSTANDING_AMOUNT']) == floatval($row['PAID_AMOUNT'])) {
                                                             $dataFound = true;
                                                             $sno++;
@@ -165,19 +185,19 @@
                                                             if ($month && $year && $branchId) {
                                                                 $date = DateTime::createFromFormat('!m', $month);
                                                                 echo '<a href="#" data-toggle="modal" data-target="#branchModal" 
-                                                                 data-month="' . htmlspecialchars($month) . '" 
-                                                                 data-year="' . htmlspecialchars($year) . '" 
-                                                                 data-branch="' . htmlspecialchars($branchId) . '"
-                                                                 data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
-                                                                 data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
-                                                                 data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
-                                                                 data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
-                                                                 data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
-                                                                 data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
-                                                                 data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
-                                                                 data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
-                                                                 data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
-                                                                 data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
+                    data-month="' . htmlspecialchars($month) . '" 
+                    data-year="' . htmlspecialchars($year) . '" 
+                    data-branch="' . htmlspecialchars($branchId) . '"
+                    data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
+                    data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
+                    data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
+                    data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
+                    data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
+                    data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
+                    data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
+                    data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
+                    data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
+                    data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
                                                                 echo htmlspecialchars($date->format('M') . '-' . $year);
                                                                 echo '</a>';
                                                             }
@@ -194,21 +214,19 @@
                                                             echo "<td>" . htmlspecialchars($row['COLLECTION_AMOUNT'] ?? '') . "</td>";
                                                             echo "<td>" . htmlspecialchars($row['PAYMENT_TYPE'] ?? '') . "</td>";
                                                             echo "<td>" . htmlspecialchars($row['NOTES'] ?? '') . "</td>";
-
-
-                                                            // echo "<td><a href='branchAccountEdit.php?id=" . $row['BRANCH_ACCOUNT_ID'] . "'><i class='fa fa-edit'></i></a></td>";
                                                             echo "</tr>";
                                                         }
                                                     }
                                                 }
 
                                                 if (!$dataFound) {
-                                                    echo '<tr><td colspan="9" class="text-center">No matching records found</td></tr>';
+                                                    echo '<tr><td colspan="13" class="text-center">No matching records found.</td></tr>';
                                                 }
 
                                                 mysqli_close($conn);
                                                 ?>
                                             </tbody>
+
 
 
                                         </table>

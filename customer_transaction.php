@@ -84,24 +84,36 @@
                                                 <?php
                                                 $userName = $_SESSION['userName'] ?? null;
                                                 $branchName = $_SESSION['admin'] ?? null;
-
-                                                if ($branchName) {
-                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
-                                                    $stmt->bind_param("s", $branchName);
-                                                    $stmt->execute();
-                                                    $result = $stmt->get_result();
-
-                                                    if ($row = $result->fetch_assoc()) {
-                                                        $branchId = $row['BRANCH_OFFICE_ID'];
-                                                    } else {
-                                                        echo "Branch not found.";
-                                                    }
-
-                                                    $stmt->close();
+                                                if (strtolower($userName)  == "admin") {
+                                                    $getCustomerTransaction = "
+    SELECT 
+        ct.*, 
+        ca.CUSTOMER_NAME 
+    FROM 
+        customer_transaction ct
+    JOIN 
+        customer_account ca ON ca.CUSTOMER_ID = ct.CUSTOMER_ID
+    ORDER BY 
+        ct.CREATED_AT DESC
+";
                                                 } else {
-                                                    echo "Branch name not set.";
-                                                }
-                                                $getCustomerTransaction = "
+                                                    if ($branchName) {
+                                                        $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                        $stmt->bind_param("s", $branchName);
+                                                        $stmt->execute();
+                                                        $result = $stmt->get_result();
+
+                                                        if ($row = $result->fetch_assoc()) {
+                                                            $branchId = $row['BRANCH_OFFICE_ID'];
+                                                        } else {
+                                                            echo "Branch not found.";
+                                                        }
+
+                                                        $stmt->close();
+                                                    } else {
+                                                        echo "Branch name not set.";
+                                                    }
+                                                    $getCustomerTransaction = "
                                                 SELECT 
                                                     ct.*, 
                                                     ca.CUSTOMER_NAME 
@@ -114,7 +126,7 @@
                                                 ORDER BY 
                                                     ct.CREATED_AT DESC
                                             ";
-                                            
+                                                }
                                                 $result = mysqli_query($conn, $getCustomerTransaction);
                                                 $sno = 1;
 

@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<?php
-include 'dbConn.php';
-?>
+
 <html lang="en">
 
 <head>
@@ -61,54 +59,58 @@ include 'dbConn.php';
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                include 'dbConn.php';
+
 
                                                 $userName = $_SESSION['userName'] ?? null;
                                                 $branchName = $_SESSION['admin'] ?? null;
+                                                $result = null;
 
-                                                if ($branchName) {
+                                                if (strtolower($userName) === 'admin') {
+                                                    $getAccountQuery = "SELECT * FROM branch_account WHERE IS_DELETE = 0 AND IS_REQUEST = 1";
+                                                    $result = mysqli_query($conn, $getAccountQuery);
+                                                } elseif ($branchName) {
                                                     $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
                                                     $stmt->bind_param("s", $branchName);
                                                     $stmt->execute();
-                                                    $result = $stmt->get_result();
+                                                    $branchResult = $stmt->get_result();
 
-                                                    if ($row = $result->fetch_assoc()) {
-                                                        $branchId = $row['BRANCH_OFFICE_ID'];
+                                                    if ($branchRow = $branchResult->fetch_assoc()) {
+                                                        $branchId = $branchRow['BRANCH_OFFICE_ID'];
+
+                                                        $stmt2 = $conn->prepare("SELECT * FROM branch_account WHERE IS_DELETE = 0 AND IS_REQUEST = 1 AND BRANCH_ID = ?");
+                                                        $stmt2->bind_param("i", $branchId);
+                                                        $stmt2->execute();
+                                                        $result = $stmt2->get_result();
                                                     } else {
-                                                        echo "Branch not found.";
+                                                        echo "<tr><td colspan='10' class='text-center'>Branch not found.</td></tr>";
                                                     }
 
                                                     $stmt->close();
                                                 } else {
-                                                    echo "Branch name not set.";
+                                                    echo "<tr><td colspan='10' class='text-center'>Branch name not set.</td></tr>";
                                                 }
 
-
-                                                $getAccount = "SELECT * FROM branch_account WHERE IS_DELETE = 0 AND IS_REQUEST = 1 AND BRANCH_ID = $branchId";
-                                                $result = mysqli_query($conn, $getAccount);
-
-                                                if (!$result) {
-                                                    die("Query failed: " . mysqli_error($conn));
-                                                }
-
-                                                if (mysqli_num_rows($result) > 0) {
+                                                if ($result && mysqli_num_rows($result) > 0) {
                                                     $sno = 0;
                                                     while ($row = mysqli_fetch_assoc($result)) {
                                                         $sno++;
 
-                                                        $branchId = $row['BRANCH_ID'];
-                                                        $getBranch = "SELECT * FROM branch_details WHERE BRANCH_OFFICE_ID = '$branchId'";
-                                                        $branchResult = mysqli_query($conn, $getBranch);
-
-                                                        $branchName = '';
+                                                        $currentBranchId = $row['BRANCH_ID'];
+                                                        $branchNameDisplay = '';
                                                         $branchData = [];
-                                                        if ($branchResult && mysqli_num_rows($branchResult) > 0) {
-                                                            $branchData = mysqli_fetch_assoc($branchResult);
-                                                            $branchName = $branchData['BRANCH_NAME'];
+
+                                                        $branchDetailsQuery = $conn->prepare("SELECT * FROM branch_details WHERE BRANCH_OFFICE_ID = ?");
+                                                        $branchDetailsQuery->bind_param("i", $currentBranchId);
+                                                        $branchDetailsQuery->execute();
+                                                        $branchDetailsResult = $branchDetailsQuery->get_result();
+
+                                                        if ($branchDetailsResult && mysqli_num_rows($branchDetailsResult) > 0) {
+                                                            $branchData = mysqli_fetch_assoc($branchDetailsResult);
+                                                            $branchNameDisplay = $branchData['BRANCH_NAME'];
                                                         }
-                                                        if ($branchResult) {
-                                                            mysqli_free_result($branchResult);
-                                                        }
+
+                                                        $branchDetailsQuery->close();
+
                                                 ?>
                                                         <tr class="text-center">
                                                             <td><?php echo $sno; ?></td>
@@ -116,24 +118,23 @@ include 'dbConn.php';
                                                                 <?php
                                                                 $month = $row['MONTH'] ?? null;
                                                                 $year = $row['YEAR'] ?? null;
-                                                                $branchId = $row['BRANCH_ID'] ?? null;
 
-                                                                if ($month && $year && $branchId) {
+                                                                if ($month && $year && $currentBranchId) {
                                                                     $date = DateTime::createFromFormat('!m', $month);
                                                                     echo '<a href="#" data-toggle="modal" data-target="#branchModal" 
-                                                                     data-month="' . htmlspecialchars($month) . '" 
-                                                                     data-year="' . htmlspecialchars($year) . '" 
-                                                                     data-branch="' . htmlspecialchars($branchId) . '"
-                                                                     data-branchname="' . htmlspecialchars($branchData['BRANCH_NAME'] ?? '') . '"
-                                                                     data-mobile="' . htmlspecialchars($branchData['BRANCH_MOBILE'] ?? '') . '"
-                                                                     data-altmobile="' . htmlspecialchars($branchData['ALTERNATIVE_MOBILE'] ?? '') . '"
-                                                                     data-place="' . htmlspecialchars($branchData['PLACE'] ?? '') . '"
-                                                                     data-username="' . htmlspecialchars($branchData['USER_NAME'] ?? '') . '"
-                                                                     data-password="' . htmlspecialchars($branchData['PASSWORD'] ?? '') . '"
-                                                                     data-paidcommission="' . htmlspecialchars($branchData['PAID_COMMISSION'] ?? '') . '"
-                                                                     data-topaidcommission="' . htmlspecialchars($branchData['TOPAID_COMMISSION'] ?? '') . '"
-                                                                     data-address="' . htmlspecialchars($branchData['ADDRESS'] ?? '') . '"
-                                                                     data-totalexpense="' . htmlspecialchars($branchData['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
+                        data-month="' . htmlspecialchars($month) . '" 
+                        data-year="' . htmlspecialchars($year) . '" 
+                        data-branch="' . htmlspecialchars($currentBranchId) . '"
+                        data-branchname="' . htmlspecialchars($branchData['BRANCH_NAME'] ?? '') . '"
+                        data-mobile="' . htmlspecialchars($branchData['BRANCH_MOBILE'] ?? '') . '"
+                        data-altmobile="' . htmlspecialchars($branchData['ALTERNATIVE_MOBILE'] ?? '') . '"
+                        data-place="' . htmlspecialchars($branchData['PLACE'] ?? '') . '"
+                        data-username="' . htmlspecialchars($branchData['USER_NAME'] ?? '') . '"
+                        data-password="' . htmlspecialchars($branchData['PASSWORD'] ?? '') . '"
+                        data-paidcommission="' . htmlspecialchars($branchData['PAID_COMMISSION'] ?? '') . '"
+                        data-topaidcommission="' . htmlspecialchars($branchData['TOPAID_COMMISSION'] ?? '') . '"
+                        data-address="' . htmlspecialchars($branchData['ADDRESS'] ?? '') . '"
+                        data-totalexpense="' . htmlspecialchars($branchData['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
                                                                     echo htmlspecialchars($date->format('M') . '-' . $year);
                                                                     echo '</a>';
                                                                 } else {
@@ -141,8 +142,7 @@ include 'dbConn.php';
                                                                 }
                                                                 ?>
                                                             </td>
-
-                                                            <td><?php echo htmlspecialchars($branchName); ?></td>
+                                                            <td><?php echo htmlspecialchars($branchNameDisplay); ?></td>
                                                             <td><?php echo htmlspecialchars($row['BOOKING_AMOUNT'] ?? ''); ?></td>
                                                             <td><?php echo htmlspecialchars($row['RECEIVED_AMOUNT'] ?? ''); ?></td>
                                                             <td><?php echo htmlspecialchars($row['COMMISSION_AMOUNT'] ?? ''); ?></td>
@@ -152,24 +152,25 @@ include 'dbConn.php';
                                                                 <a href="javascript:void(0);" onclick="approvel(this)" data-id="<?php echo $row['BRANCH_ACCOUNT_ID']; ?>">
                                                                     <i class="fa fa-check text-success"></i>
                                                                 </a>
-
-
                                                             </td>
                                                             <td>
                                                                 <a href="javascript:void(0);" onclick="cancel(this)" data-id="<?php echo $row['BRANCH_ACCOUNT_ID']; ?>">
                                                                     <i class="fa fa-close text-danger"></i>
                                                                 </a>
-
                                                             </td>
                                                         </tr>
                                                 <?php
                                                     }
+                                                } elseif (!isset($result)) {
+                                                    // Already handled above
                                                 } else {
-                                                    echo '<tr><td colspan="9" class="text-center">No records found</td></tr>';
+                                                    echo '<tr><td colspan="10" class="text-center">No records found</td></tr>';
                                                 }
+
                                                 mysqli_close($conn);
                                                 ?>
                                             </tbody>
+
                                         </table>
                                     </div>
 

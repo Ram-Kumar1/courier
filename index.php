@@ -1,7 +1,80 @@
 <?php
-
+session_start();
 include 'dbConn.php';
-	
+
+date_default_timezone_set('Asia/Kolkata');
+$firstDay = date('Y-m-01'); // hard-coded '01' for first day
+$lastDay = date('Y-m-t');
+
+if (!isset($_SESSION['userName'])) {
+	header("Location: agentLogin.php");
+	exit();
+}
+$whereSql = "";
+$userName = $_SESSION['userName'] ?? null;
+$branchName = $_SESSION['admin'] ?? null;
+if (strtolower($userName) == strtolower('admin')) {
+	// Nothing
+} else {
+	$whereSql = " AND FROM_PLACE = '$branchName' ";
+}
+
+$bookingCount = 0;
+$bookingCountSql = "SELECT COUNT(*) AS CNT FROM booking_details WHERE BOOKING_DATE AND IS_DELETE=0 BETWEEN '$firstDay' AND '$lastDay'";
+// $bookingCountSql = "SELECT COUNT(*) AS CNT FROM booking_details WHERE BOOKING_DATE BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()";
+if (!empty($whereSql)) {
+	$bookingCountSql = $bookingCountSql . $whereSql;
+}
+// echo $bookingCountSql;
+if ($result = mysqli_query($conn, $bookingCountSql)) {
+	if (mysqli_num_rows($result) > 0) {
+		while ($row = mysqli_fetch_array($result)) {
+			$bookingCount = $row['CNT'];
+		}
+	}
+}
+
+$totalAmount = 0;
+$totalAmountSql = "SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM booking_details WHERE BOOKING_DATE BETWEEN '$firstDay' AND '$lastDay'";
+if (empty($whereSql)) {
+	// Nothing
+} else {
+	$totalAmountSql = $totalAmountSql . $whereSql;
+}
+// echo $bookingCountSql;
+if ($result = mysqli_query($conn, $totalAmountSql)) {
+	if (mysqli_num_rows($result) > 0) {
+		while ($row = mysqli_fetch_array($result)) {
+			$totalAmount = $row['TOTAL_AMOUNT'];
+		}
+	}
+}
+if (empty($totalAmount)) {
+	$totalAmount = 0;
+}
+
+$shipingDetailsSql = "SELECT BD.BOOKING_ID, BD.CUSTOMER, BD.LR_NUMBER, 
+		BD.BOOKING_DATE, BD.FROM_PLACE, BD.TO_PLACE,
+		CASE
+			WHEN BD.BOOKING_STAUTS = 0 THEN 'Booked/Ready To Ship'
+			WHEN BD.BOOKING_STAUTS = 1 THEN 'Ship Inward'
+			WHEN BD.BOOKING_STAUTS = 2 THEN 'Shipped'
+			WHEN BD.BOOKING_STAUTS = 3 THEN 'Delivered'
+		END AS BOOKING_STAUTS 
+		FROM booking_details BD
+		WHERE 1 = 1 AND IS_DELETE = 0
+		AND BOOKING_DATE BETWEEN '$firstDay' AND '$lastDay'
+		-- AND BOOKING_DATE BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+		";
+
+if (strtolower($userName) == 'admin') {
+} else {
+	$shipingDetailsSql = $shipingDetailsSql . " AND FROM_PLACE = '$branchName' ";
+}
+$shipingDetailsSql = $shipingDetailsSql . " ORDER BY BOOKING_DATE DESC";
+
+
+
 $currentMonth = date('m');
 $currentYear = date('Y');
 
@@ -99,83 +172,10 @@ function formatToIndianCurrency($amount)
 
 		<?php
 		include 'header.php';
-	
-date_default_timezone_set('Asia/Kolkata');
-$firstDay = date('Y-m-01'); // hard-coded '01' for first day
-$lastDay = date('Y-m-t');
-
-if (!isset($_SESSION['userName'])) {
-	header("Location: agentLogin.php");
-	exit(); 
-	
-}
-$whereSql = "";
-$userName = $_SESSION['userName'] ?? null;
-$branchName = $_SESSION['admin'] ?? null;
-if (strtolower($userName) == strtolower('admin')) {
-// Nothing
-} else {
-$whereSql = " AND FROM_PLACE = '$branchName' ";
-}
-
-$bookingCount = 0;
-$bookingCountSql = "SELECT COUNT(*) AS CNT FROM booking_details WHERE BOOKING_DATE AND IS_DELETE=0 BETWEEN '$firstDay' AND '$lastDay'";
-// $bookingCountSql = "SELECT COUNT(*) AS CNT FROM booking_details WHERE BOOKING_DATE BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()";
-if (!empty($whereSql)) {
-$bookingCountSql = $bookingCountSql . $whereSql;
-}
-// echo $bookingCountSql;
-if ($result = mysqli_query($conn, $bookingCountSql)) {
-if (mysqli_num_rows($result) > 0) {
-while ($row = mysqli_fetch_array($result)) {
-	$bookingCount = $row['CNT'];
-}
-}
-}
-
-$totalAmount = 0;
-$totalAmountSql = "SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM booking_details WHERE BOOKING_DATE BETWEEN '$firstDay' AND '$lastDay'";
-if (empty($whereSql)) {
-// Nothing
-} else {
-$totalAmountSql = $totalAmountSql . $whereSql;
-}
-// echo $bookingCountSql;
-if ($result = mysqli_query($conn, $totalAmountSql)) {
-if (mysqli_num_rows($result) > 0) {
-while ($row = mysqli_fetch_array($result)) {
-	$totalAmount = $row['TOTAL_AMOUNT'];
-}
-}
-}
-if (empty($totalAmount)) {
-$totalAmount = 0;
-}
-
-$shipingDetailsSql = "SELECT BD.BOOKING_ID, BD.CUSTOMER, BD.LR_NUMBER, 
-				BD.BOOKING_DATE, BD.FROM_PLACE, BD.TO_PLACE,
-				CASE
-					WHEN BD.BOOKING_STAUTS = 0 THEN 'Booked/Ready To Ship'
-					WHEN BD.BOOKING_STAUTS = 1 THEN 'Ship Inward'
-					WHEN BD.BOOKING_STAUTS = 2 THEN 'Shipped'
-					WHEN BD.BOOKING_STAUTS = 3 THEN 'Delivered'
-				END AS BOOKING_STAUTS 
-				FROM booking_details BD
-				WHERE 1 = 1 AND IS_DELETE = 0
-				AND BOOKING_DATE BETWEEN '$firstDay' AND '$lastDay'
-				-- AND BOOKING_DATE BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
-				";
-
-if (strtolower($userName) == 'admin') {
-} else {
-$shipingDetailsSql = $shipingDetailsSql . " AND FROM_PLACE = '$branchName' ";
-}
-$shipingDetailsSql = $shipingDetailsSql . " ORDER BY BOOKING_DATE DESC";
 
 
 
 
-	
 		?>
 
 		<!--**********************************
@@ -214,100 +214,100 @@ $shipingDetailsSql = $shipingDetailsSql . " ORDER BY BOOKING_DATE DESC";
 
 				</div>
 				<div class="row">
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
+					<div class="col-sm-6">
+						<div class="card">
+							<div class="card-body">
 
-                                <h3 style="text-align:center;">Total Booking Amount </h3>
-                                <div id="charts">
-                                    <div id="pieChart" class="chart-container" style="width: 90%; height: 300px;"></div>
+								<h3 style="text-align:center;">Total Booking Amount </h3>
+								<div id="charts">
+									<div id="pieChart" class="chart-container" style="width: 90%; height: 300px;"></div>
 
-                                    <script>
-                                        anychart.onDocumentReady(function() {
-                                            // --------- Pie Chart (Amount) ---------
-                                            var pieData = [
-                                                ["Paid", <?= $amountPaid ?>],
-                                                ["To Pay", <?= $amountToPay ?>],
-                                                ["Account", <?= $amountAccount ?>]
-                                            ];
+									<script>
+										anychart.onDocumentReady(function() {
+											// --------- Pie Chart (Amount) ---------
+											var pieData = [
+												["Paid", <?= $amountPaid ?>],
+												["To Pay", <?= $amountToPay ?>],
+												["Account", <?= $amountAccount ?>]
+											];
 
-                                            var pieChart = anychart.pie(pieData);
-                                            pieChart.title("Total Amount by Payment Type");
-                                            pieChart.labels().format("₹{%Value}{groupsSeparator:','}");
-                                            pieChart.tooltip().format("Payment Type: {%X}\nAmount: ₹{%Value}{groupsSeparator:','}");
-                                            pieChart.container("pieChart");
-                                            pieChart.draw();
-                                            // Custom colors for the pie chart
+											var pieChart = anychart.pie(pieData);
+											pieChart.title("Total Amount by Payment Type");
+											pieChart.labels().format("₹{%Value}{groupsSeparator:','}");
+											pieChart.tooltip().format("Payment Type: {%X}\nAmount: ₹{%Value}{groupsSeparator:','}");
+											pieChart.container("pieChart");
+											pieChart.draw();
+											// Custom colors for the pie chart
 
-                                            pieChart.palette(["#4CAF50", "#FFC107", "#F44336"]); // Green, Yellow, Red
+											pieChart.palette(["#4CAF50", "#FFC107", "#F44336"]); // Green, Yellow, Red
 
-                                        });
-                                    </script>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+										});
+									</script>
+								</div>
+							</div>
+						</div>
+					</div>
 
 
 
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h3 style="text-align:center;">Total Booking </h3>
+					<div class="col-sm-6">
+						<div class="card">
+							<div class="card-body">
+								<h3 style="text-align:center;">Total Booking </h3>
 
-                                <!-- Chart container placed inside its own wrapper -->
-                                <div class="chart-wrapper">
-                                    <div id="barChartContainer" style="width: 90%; height: 310px;"></div>
-                                </div>
+								<!-- Chart container placed inside its own wrapper -->
+								<div class="chart-wrapper">
+									<div id="barChartContainer" style="width: 90%; height: 310px;"></div>
+								</div>
 
-                                <script>
-                                    // --------- Horizontal Bar Chart (Booking Count) ---------
-                                    var barData = [{
-                                            x: "PAID",
-                                            value: <?= $countPaid ?>,
-                                            normal: {
-                                                fill: "#E91E63" // Pink
-                                            }
-                                        },
-                                        {
-                                            x: "To Pay",
-                                            value: <?= $countToPay ?>,
-                                            normal: {
-                                                fill: "#FFC107" // Amber
-                                            }
-                                        },
-                                        {
-                                            x: "Account",
-                                            value: <?= $countAccount ?>,
-                                            normal: {
-                                                fill: "#3F51B5" // Indigo
-                                            }
-                                        }
-                                    ];
+								<script>
+									// --------- Horizontal Bar Chart (Booking Count) ---------
+									var barData = [{
+											x: "PAID",
+											value: <?= $countPaid ?>,
+											normal: {
+												fill: "#E91E63" // Pink
+											}
+										},
+										{
+											x: "To Pay",
+											value: <?= $countToPay ?>,
+											normal: {
+												fill: "#FFC107" // Amber
+											}
+										},
+										{
+											x: "Account",
+											value: <?= $countAccount ?>,
+											normal: {
+												fill: "#3F51B5" // Indigo
+											}
+										}
+									];
 
-                                    var barChart = anychart.bar(); // Horizontal bar chart
-                                    barChart.data(barData);
-                                    barChart.title("Booking Count by Payment Type");
+									var barChart = anychart.bar(); // Horizontal bar chart
+									barChart.data(barData);
+									barChart.title("Booking Count by Payment Type");
 
-                                    // Axis labels
-                                    barChart.xAxis().title("Payment Type");
-                                    barChart.yAxis().title("Number of Bookings");
+									// Axis labels
+									barChart.xAxis().title("Payment Type");
+									barChart.yAxis().title("Number of Bookings");
 
-                                    // Bar labels & tooltip
-                                    barChart.labels().enabled(true);
-                                    barChart.labels().format("{%Value}");
-                                    barChart.tooltip().format("Type: {%X}\nCount: {%Value}");
+									// Bar labels & tooltip
+									barChart.labels().enabled(true);
+									barChart.labels().format("{%Value}");
+									barChart.tooltip().format("Type: {%X}\nCount: {%Value}");
 
-                                    // Use the container
-                                    barChart.container("barChartContainer");
-                                    barChart.draw();
-                                </script>
+									// Use the container
+									barChart.container("barChartContainer");
+									barChart.draw();
+								</script>
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-			
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<div class="row">
 					<div class="col-lg-12">
 						<div class="card">

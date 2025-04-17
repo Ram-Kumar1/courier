@@ -271,22 +271,27 @@ if (isset($_POST['submit'])) {
                                                     <select class="form-control" id="from-branch-place" name="from-branch-place" onchange="branchSelectChanged(this, 'from-branch-mobile')" required>
                                                         <option value=''>-- SELECT FROM PLACE --</option>
                                                         <?php
-                                                        $selectCity = "SELECT BRANCH_NAME, BRANCH_MOBILE FROM branch_details";
                                                         $userName = $_SESSION['userName'];
                                                         $branchName = $_SESSION['admin'];
-                                                        if (strtolower($userName) == strtolower("admin")) {
-                                                            // Do Nothing
-                                                        } else {
-                                                            $selectCity = $selectCity . " WHERE BRANCH_NAME = '$branchName'";
+
+                                                        $selectCity = "SELECT BRANCH_NAME, BRANCH_MOBILE FROM branch_details";
+                                                        if (strtolower($userName) != "admin") {
+                                                            $selectCity .= " WHERE BRANCH_NAME = '$branchName'";
                                                         }
-                                                        $selectCity = $selectCity . '  ORDER BY BRANCH_NAME';
+                                                        $selectCity .= " ORDER BY BRANCH_NAME";
+
+                                                        echo "<script>var branchAndPlaceMap = branchAndPlaceMap || {};</script>";
+
                                                         if ($result = mysqli_query($conn, $selectCity)) {
                                                             if (mysqli_num_rows($result) > 0) {
                                                                 while ($row = mysqli_fetch_array($result)) {
+                                                                    $selected = ($row['BRANCH_NAME'] == $branchName) ? "selected" : "";
                                                         ?>
-                                                                    <option value="<?php echo $row['BRANCH_NAME'] ?>" selected><?php echo $row['BRANCH_NAME'] ?></option>
+                                                                    <option value="<?php echo $row['BRANCH_NAME']; ?>" <?php echo $selected; ?>>
+                                                                        <?php echo $row['BRANCH_NAME']; ?>
+                                                                    </option>
                                                                     <script>
-                                                                        branchAndPlaceMap[<?php echo "'" . $row['BRANCH_NAME'] . "'"; ?>] = <?php echo "'" . str_replace('"', '', json_encode($row['BRANCH_MOBILE'])) . "'"; ?>
+                                                                        branchAndPlaceMap[<?php echo json_encode($row['BRANCH_NAME']); ?>] = <?php echo json_encode($row['BRANCH_MOBILE']); ?>;
                                                                     </script>
                                                         <?php
                                                                 }
@@ -294,6 +299,7 @@ if (isset($_POST['submit'])) {
                                                         }
                                                         ?>
                                                     </select>
+
                                                 </div>
                                             </div>
                                             <!-- <?php echo $selectCity; ?> -->
