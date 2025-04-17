@@ -194,7 +194,7 @@ include 'dbConn.php';
                     <div class="modal-body">
                         <form id="branchDetailsForm">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="branchName">Branch Name</label>
                                         <input type="text" class="form-control" id="branchName" name="branchName" readonly>

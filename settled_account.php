@@ -94,27 +94,27 @@
                                                 include 'dbConn.php';
 
                                                 $query = "
-    SELECT 
-        ba.*, 
-        bd.BRANCH_NAME, 
-        bd.BRANCH_MOBILE,
-        bd.ALTERNATIVE_MOBILE,
-        bd.PLACE,
-        bd.USER_NAME,
-        bd.PASSWORD,
-        bd.PAID_COMMISSION,
-        bd.TOPAID_COMMISSION,
-        bd.ADDRESS,
-        bd.TOTAL_EXPENSE_AMOUNT
-    FROM 
-        branch_account ba
-    LEFT JOIN 
-        branch_details bd 
-    ON 
-        ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
-    WHERE 
-        ba.IS_DELETE = 0
-";
+                                                         SELECT 
+                                                         ba.*, 
+                                                         bd.BRANCH_NAME, 
+                                                         bd.BRANCH_MOBILE,
+                                                         bd.ALTERNATIVE_MOBILE,
+                                                         bd.PLACE,
+                                                         bd.USER_NAME,
+                                                         bd.PASSWORD,
+                                                         bd.PAID_COMMISSION,
+                                                         bd.TOPAID_COMMISSION,
+                                                         bd.ADDRESS,
+                                                         bd.TOTAL_EXPENSE_AMOUNT
+                                                         FROM 
+                                                         branch_account ba
+                                                         LEFT JOIN 
+                                                         branch_details bd 
+                                                         ON 
+                                                         ba.BRANCH_ID = bd.BRANCH_OFFICE_ID
+                                                         WHERE 
+                                                         ba.IS_DELETE = 0
+                                                         ";
 
                                                 $result = mysqli_query($conn, $query);
 

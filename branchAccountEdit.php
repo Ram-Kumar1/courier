@@ -14,7 +14,17 @@ if (isset($_GET['id'])) {
     $result = $stmt->get_result(); // get the result set
 
     if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc(); // fetch row as associative array
+        $row = $result->fetch_assoc();
+        $branchId = $row['BRANCH_ID'];
+        $getBranchNameQuery = "SELECT BRANCH_NAME FROM branch_details WHERE BRANCH_OFFICE_ID = '$branchId'";
+        $result = mysqli_query($conn, $getBranchNameQuery);
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            $branchRow = mysqli_fetch_assoc($result);
+            $branchName = $branchRow['BRANCH_NAME'];
+        } else {
+            echo "Branch not found.";
+        }
     } else {
         echo "No record found.";
         exit;
@@ -28,7 +38,7 @@ if (isset($_GET['id'])) {
 
 
 if (isset($_POST['submit'])) {
-   
+
 
     $BRANCH_ACCOUNT_ID = intval($_POST['BRANCH_ACCOUNT_ID']);
     $BOOKING_AMOUNT = floatval($_POST['BOOKING_AMOUNT']);
@@ -69,7 +79,6 @@ if (isset($_POST['submit'])) {
             alert('✔️ Update successful!');
             window.location.href = 'BranchAccount.php';
         </script>";
-        
         } else {
             echo "Insert failed: " . mysqli_error($conn);
         }
@@ -127,48 +136,55 @@ if (isset($_POST['submit'])) {
                                                 <input type="hidden" name="BRANCH_ACCOUNT_ID" value="<?php echo htmlspecialchars($row['BRANCH_ACCOUNT_ID']); ?>">
 
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <label for="BOOKING_AMOUNT">Branch Name</label>
+                                                            <input type="text" class="form-control" id="BOOKING_AMOUNT" name="BOOKING_AMOUNT" value="<?php echo $branchName; ?>" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="BOOKING_AMOUNT">Booking Amount</label>
-                                                            <input type="text" class="form-control" id="BOOKING_AMOUNT" name="BOOKING_AMOUNT" value="<?php echo htmlspecialchars($row['BOOKING_AMOUNT']); ?>">
+                                                            <input type="text" class="form-control" id="BOOKING_AMOUNT" name="BOOKING_AMOUNT" value="<?php echo htmlspecialchars($row['BOOKING_AMOUNT']); ?>" readonly>
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="RECEIVED_AMOUNT">Received Amount</label>
-                                                            <input type="text" class="form-control" id="RECEIVED_AMOUNT" name="RECEIVED_AMOUNT" value="<?php echo htmlspecialchars($row['RECEIVED_AMOUNT']); ?>">
+                                                            <input type="text" class="form-control" id="RECEIVED_AMOUNT" name="RECEIVED_AMOUNT" value="<?php echo htmlspecialchars($row['RECEIVED_AMOUNT']); ?>" readonly>
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="BOOKING_PERCENTAGE">Booking Percentage</label>
-                                                            <input type="text" class="form-control" id="BOOKING_PERCENTAGE" name="BOOKING_PERCENTAGE" value="<?php echo htmlspecialchars($row['BOOKING_PERCENTAGE']); ?>" required>
+                                                            <input type="text" class="form-control" id="BOOKING_PERCENTAGE" name="BOOKING_PERCENTAGE" value="<?php echo htmlspecialchars($row['BOOKING_PERCENTAGE']); ?>" readonly>
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="RECEIVED_PERCENTAGE">Received Percentage</label>
-                                                            <input type="text" class="form-control" id="RECEIVED_PERCENTAGE" name="RECEIVED_PERCENTAGE" value="<?php echo htmlspecialchars($row['RECEIVED_PERCENTAGE']); ?>">
+                                                            <input type="text" class="form-control" id="RECEIVED_PERCENTAGE" name="RECEIVED_PERCENTAGE" value="<?php echo htmlspecialchars($row['RECEIVED_PERCENTAGE']); ?>" readonly>
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="COMMISSION_AMOUNT">Commission Amount</label>
-                                                            <input type="number" step="0.01" class="form-control" id="COMMISSION_AMOUNT" name="COMMISSION_AMOUNT" value="<?php echo htmlspecialchars($row['COMMISSION_AMOUNT']); ?>">
+                                                            <input type="number" step="0.01" class="form-control" id="COMMISSION_AMOUNT" name="COMMISSION_AMOUNT" value="<?php echo htmlspecialchars($row['COMMISSION_AMOUNT']); ?>" readonly>
                                                         </div>
                                                     </div>
 
 
 
                                                     <!-- Admin Outstanding Amount -->
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="ADMIN_OUTSTANDING_AMOUNT">Admin Outstanding Amount</label>
-                                                            <input type="number" class="form-control" id="ADMIN_OUTSTANDING_AMOUNT" name="ADMIN_OUTSTANDING_AMOUNT" step="0.01"
+                                                            <input type="number" class="form-control" id="ADMIN_OUTSTANDING_AMOUNT" name="ADMIN_OUTSTANDING_AMOUNT" step="0.01" readonly
                                                                 value="<?php
                                                                         if (isset($row['ADMIN_OUTSTANDING_AMOUNT'])) {
                                                                             // Remove any special characters except numbers and decimal point
@@ -184,11 +200,11 @@ if (isset($_POST['submit'])) {
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="PAYAMENT_TYPE">Payment Type <span class="text-danger">*</span></label>
                                                             <select name="PAYAMENT_TYPE" id="PAYMENT_TYPE" class="form-control">
-                                                           
+                                                                <option>-- SELECT PAYMENT TYPE --</option>
                                                                 <option value="CASH" <?php echo ($row['PAYMENT_TYPE'] === 'CASE') ? 'selected' : 'CASE'; ?>>Cash</option>
                                                                 <option value="ONLINE" <?php echo ($row['PAYMENT_TYPE'] === 'ONLINE') ? 'selected' : 'ONLINE'; ?>>Online</option>
                                                             </select>
@@ -196,7 +212,7 @@ if (isset($_POST['submit'])) {
                                                     </div>
 
                                                     <!-- Paid Amount -->
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="PAID_AMOUNT">Paid Amount <span class="text-danger">*</span></label>
                                                             <input type="number" class="form-control" id="PAID_AMOUNT" name="PAID_AMOUNT" step="0.01"
@@ -211,16 +227,21 @@ if (isset($_POST['submit'])) {
                                                                         } else {
                                                                             echo '0';
                                                                         }
-                                                                        ?>"
-                                                                value="<?php echo isset($row['PAID_AMOUNT']) ? htmlspecialchars($row['PAID_AMOUNT']) : ''; ?>">
-
+                                                                        ?>">
                                                         </div>
                                                     </div>
+                                                    <input type="hidden" id="old_paid_amt"   value="<?php echo isset($row['PAID_AMOUNT']) ? htmlspecialchars($row['PAID_AMOUNT']) : ''; ?>">
+                                                    <div class="col-md-12">
 
-                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="new-balance">New Balance:</label>
+                                                            <input type="number" class="form-control" id="new-balance" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="PAID_AMOUNT">Notes <span class="text-danger">*</span></label>
-                                                            <textarea name="NOTES" class="form-control" id="NOTES" rows="3"><?php echo htmlspecialchars($row['NOTES']); ?></textarea>
+                                                            <textarea name="NOTES" class="form-control" id="NOTES" rows="3" placeholder="Enter your Notes"></textarea>
 
                                                         </div>
                                                     </div>
@@ -230,7 +251,7 @@ if (isset($_POST['submit'])) {
 
                                                 <!-- Add a submit button -->
                                                 <div class="text-center">
-                                                    <button type="submit" name="submit" class="btn btn-primary">Update Account</button>
+                                                    <button type="submit" name="submit" class="btn btn-success">Update Account</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -255,7 +276,13 @@ if (isset($_POST['submit'])) {
         $(document).ready(function() {
             // Init plugins here if needed
         });
-
+        document.getElementById('PAID_AMOUNT').addEventListener('input', function() {
+            const balanceAmount = parseFloat(document.getElementById('ADMIN_OUTSTANDING_AMOUNT').value) || 0;
+            const oldPiadAmount = parseFloat(document.getElementById('old_paid_amt').value) || 0;
+            const paidAmount = parseFloat(this.value) || 0;
+            const newBalance = balanceAmount - paidAmount-oldPiadAmount;
+            document.getElementById('new-balance').value = newBalance.toFixed(2);
+        });
 
         document.getElementById('PAID_AMOUNT').addEventListener('input', function() {
             const paid = parseFloat(this.value) || 0;

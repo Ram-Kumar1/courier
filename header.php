@@ -355,19 +355,20 @@ require_once 'CaesarCipher.php';
                     <li><a href="BranchAccount.php">Brach Account</a></li>
                     <li><a href="accounts.php">Accounts</a></li>
                     <li><a href="settled_account.php">Settled Account</a></li>
-                    
+
 
                 </ul>
             </li>
             <li class="sub-menu for-marketing" id="report-list">
 
-<a class="has-arrow" href="javascript:void()" aria-expanded="false">
-    <i class="fa fa-money font-medium menu-icon"></i> <span class="nav-text">Customer Account</span>
-</a>
-<ul class="sub">
-<li><a href="transaction.php">Transactions</a></li>
-</ul>
-</li>
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fa fa-money font-medium menu-icon"></i> <span class="nav-text">Customer Account</span>
+                </a>
+                <ul class="sub">
+                    <li><a href="customer_account.php">Account</a></li>
+                    <li><a href="customer_transaction.php">Customer Transaction</a></li>
+                </ul>
+            </li>
         </ul>
     </div>
 </div>
