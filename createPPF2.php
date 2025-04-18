@@ -288,7 +288,7 @@ if (isset($_GET['lr_Id'])) {
                                                                         <tr>
                                                                             <td style="text-align: center;">
                                                                                 <h2>
-                                                                                    <b contenteditable="true">NOVA TRAVELS & SPEED PARCEL SERVICE</b>
+                                                                                    <b contenteditable="true">ZENITH TRAVELS & SPEED PARCEL SERVICE</b>
                                                                                 </h2>
                                                                             </td>
                                                                         </tr>

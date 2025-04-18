@@ -30,7 +30,7 @@ class DBOperations
 
         // Check for errors
         if ($result) {
-            return "Insert Successful". mysqli_insert_id($conn);
+            return "Insert Successful - ". mysqli_insert_id($conn);
             
         } else {
             $error = mysqli_error($conn);

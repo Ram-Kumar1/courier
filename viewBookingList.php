@@ -149,16 +149,12 @@ $sql .= " ORDER BY BD.BOOKING_ID DESC";
                                                                         <td style="color:#0c1211"><?php echo $row['TOTAL_AMOUNT']; ?></td>
                                                                         <td style="color:#0c1211"><?php echo $row['BOOKING_STAUTS']; ?></td>
                                                                         <td style="color:#0c1211; text-align: center;">
-                                                                            <a
-
-                                                                                onclick="createPdf(<?php echo $row['BOOKING_ID']; ?>)">
-                                                                                <i class="material-icons"
-                                                                                    style="color: #0c1211; cursor:pointer;">remove_red_eye</i>
+                                                                            <a class="a-view-icon" onclick="createPdf(<?php echo $row['BOOKING_ID']; ?>)">
+                                                                                <i class="material-icons" style="cursor:pointer;">remove_red_eye</i>
                                                                             </a>
-
                                                                         </td>
                                                                         <td style="color:#0c1211; text-align: center; ">
-                                                                            <a style="cursor:pointer;"
+                                                                            <a class="a-edit-icon" style="cursor:pointer;"
                                                                                 data-id="<?php echo $row['BOOKING_ID']; ?>"
                                                                                 onclick="editBooking(<?php echo $row['BOOKING_ID']; ?>)">
                                                                                 <i class="fa fa-pencil font-x-large" aria-hidden="true"></i>

@@ -253,7 +253,7 @@ if (isset($_POST['submit'])) {
                                                 <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <label for="delivery-to">Receiver Name<span class="mandatory-field text-danger">*</span></label>
-                                                        <input type="text" required class="form-control" id="delivery-to" placeholder="Enter Delivery Info" name="delivery-to" />
+                                                        <input type="text" required class="form-control" id="delivery-to" placeholder="Enter Receiver Name" name="delivery-to" />
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-6">

@@ -91,7 +91,7 @@ while ($row = $result1->fetch_assoc()) {
 		case 'paid':
 			$countPaid = $row['count'];
 			break;
-		case 'to pay':
+		case 'to_pay':
 			$countToPay = $row['count'];
 			break;
 		case 'account':
@@ -114,7 +114,7 @@ while ($row = $result2->fetch_assoc()) {
 		case 'paid':
 			$amountPaid = $row['total'];
 			break;
-		case 'to pay':
+		case 'to_pay':
 			$amountToPay = $row['total'];
 			break;
 		case 'account':
@@ -123,9 +123,6 @@ while ($row = $result2->fetch_assoc()) {
 	}
 }
 $stmt2->close();
-$conn->close();
-
-
 ?>
 
 <!DOCTYPE html>
@@ -232,7 +229,7 @@ function formatToIndianCurrency($amount)
 											];
 
 											var pieChart = anychart.pie(pieData);
-											pieChart.title("Total Amount by Payment Type");
+											pieChart.title("");
 											pieChart.labels().format("₹{%Value}{groupsSeparator:','}");
 											pieChart.tooltip().format("Payment Type: {%X}\nAmount: ₹{%Value}{groupsSeparator:','}");
 											pieChart.container("pieChart");
@@ -253,7 +250,7 @@ function formatToIndianCurrency($amount)
 					<div class="col-sm-6">
 						<div class="card">
 							<div class="card-body">
-								<h3 style="text-align:center;">Total Booking </h3>
+								<h3 style="text-align:center;">No Of Parcels Booked</h3>
 
 								<!-- Chart container placed inside its own wrapper -->
 								<div class="chart-wrapper">
@@ -287,7 +284,7 @@ function formatToIndianCurrency($amount)
 
 									var barChart = anychart.bar(); // Horizontal bar chart
 									barChart.data(barData);
-									barChart.title("Booking Count by Payment Type");
+									barChart.title("");
 
 									// Axis labels
 									barChart.xAxis().title("Payment Type");

@@ -2,7 +2,9 @@
 <html lang="en">
 
 <head>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith</title>
     <!-- Your head content here -->
     <link rel="stylesheet" href="./css/table-filter.css">
     <style>
@@ -20,7 +22,10 @@
             font-size: 1.5em;
         }
     </style>
-
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
 <body>
@@ -67,91 +72,168 @@
                                     <div id="table-data" class="table-responsive filterable max-30">
                                         <table id="data-table" class="table table-striped tableFixHead">
                                             <thead>
-                                                <tr class="text-center">
+                                                <tr>
                                                     <th>Sno</th>
-                                                    <th>Date</th>
                                                     <th>Customer Name</th>
-                                                    <th>Balance Amount</th>
+                                                    <th>Mobile</th>
+                                                    <th>Balance</th>
                                                     <th>Edit</th>
-
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
+                                                include 'dbConn.php';
+
+                                                $whereSql = "";
                                                 $userName = $_SESSION['userName'] ?? null;
                                                 $branchName = $_SESSION['admin'] ?? null;
-                                                $branchId = null;
-
-                                                // Get branch ID if not admin
-                                                if (strtolower($userName) !== 'admin' && $branchName) {
-                                                    $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
-                                                    $stmt->bind_param("s", $branchName);
-                                                    $stmt->execute();
-                                                    $result = $stmt->get_result();
-
-                                                    if ($row = $result->fetch_assoc()) {
-                                                        $branchId = $row['BRANCH_OFFICE_ID'];
-                                                    } else {
-                                                        echo "<tr><td colspan='7' class='text-center'>Branch not found.</td></tr>";
-                                                    }
-
-                                                    $stmt->close();
-                                                }
-
-                                                // Fetch customer accounts
-                                                if ($userName === 'admin') {
-                                                    $query = "SELECT * FROM customer_account";
-                                                    $stmt = $conn->prepare($query);
-                                                } elseif ($branchId) {
-                                                    $query = "SELECT * FROM customer_account WHERE BRANCH_ID = ?";
-                                                    $stmt = $conn->prepare($query);
-                                                    $stmt->bind_param("i", $branchId);
+                                                if (strtolower($userName) == strtolower('admin')) {
+                                                    // Nothing
                                                 } else {
-                                                    echo "<tr><td colspan='7' class='text-center'>Branch name not set or branch ID missing.</td></tr>";
-                                                    exit;
+                                                    $whereSql = " WHERE BRANCH_NAME = '$branchName' ";
+                                                }
+                                                $query = "SELECT * FROM v_customer_account ";
+
+                                                if (!empty($whereSql)) {
+                                                    $query = $query . $whereSql;
                                                 }
 
-                                                $stmt->execute();
-                                                $result = $stmt->get_result();
-                                                $sno = 1;
+                                                $query = $query . " ORDER BY BALANCE DESC";
 
-                                                if ($result && $result->num_rows > 0) {
-                                                    while ($row = $result->fetch_assoc()) {
-                                                        $createdAt = !empty($row['CREATED_AT']) ? strtolower(date('d-M-Y', strtotime($row['CREATED_AT']))) : 'N/A';
-                                                        $customerName = htmlspecialchars($row['CUSTOMER_NAME'] ?? 'N/A');
-                                                        $outstanding = isset($row['OUTSTANDING_AMOUNT'], $row['PAID_AMOUNT']) ?
-                                                            ($row['OUTSTANDING_AMOUNT'] - $row['PAID_AMOUNT']) : 'N/A';
-                                                        $customerId = htmlspecialchars($row['CUSTOMER_ID']);
+                                                //  ORDER BY BALANCE DESC";
+                                                $result = mysqli_query($conn, $query);
 
-                                                        echo "<tr class='text-center'>";
-                                                        echo "<td>{$sno}</td>";
-                                                        echo "<td>{$createdAt}</td>";
-                                                        echo "<td>{$customerName}</td>";
-                                                        echo "<td>{$outstanding}</td>";
-                                                        echo "<td>
-                <a class='a-edit-icon' href='editCustomerAccount.php?id={$customerId}'>
-                    <i class='fa fa-pencil font-x-large' aria-hidden='true'></i>
-                </a>
-              </td>";
-                                                        echo "</tr>";
+                                                // Initialize sum variables
+                                                $totalOutstanding = 0;
+                                                $totalPaid = 0;
+                                                $totalBalance = 0;
+
+                                                if (!$result) {
+                                                    die("Query failed: " . mysqli_error($conn));
+                                                }
+
+                                                if (mysqli_num_rows($result) > 0) {
+                                                    $sno = 0;
+                                                    while ($row = mysqli_fetch_assoc($result)) {
                                                         $sno++;
+                                                        // Add to totals
+                                                        $totalBalance += $row['BALANCE'] ?? 0;
+
+                                                        $month = $row['MONTH'] ?? null;
+                                                        $year = $row['YEAR'] ?? null;
+                                                        $branchId = $row['BRANCH_ID'] ?? null;
+
+                                                        echo "<tr>";
+                                                        echo "<td>$sno</td>";
+                                                        echo "<td>" . htmlspecialchars($row['CUSTOMER_NAME'] ?? '') . "</td>";
+                                                        echo "<td>" . htmlspecialchars($row['MOBILE'] ?? '') . "</td>";
+                                                        echo "<td>" . htmlspecialchars($row['BALANCE'] ?? '') . "</td>";
+
+                                                        echo "<td><a href='editCustomerAccount.php?id=" . $row['CUSTOMER_ID'] . "'><i class='fa fa-edit'></i></a></td>";
+                                                        echo "</tr>";
                                                     }
+
+                                                    // Add summary row
+                                                    echo '<tr class="total-row" style="font-weight:bold; background-color:#f5f5f5;">';
+                                                    echo '<td colspan="3" class="text-right">Total:</td>';
+                                                    echo '<td>' . number_format($totalBalance, 2) . '</td>';
+                                                    echo '<td></td>'; // Empty cell for the Edit column
+                                                    echo '</tr>';
                                                 } else {
-                                                    echo "<tr><td colspan='7' class='text-center'>No records found</td></tr>";
+                                                    echo '<tr><td colspan="11" class="text-center">No records found</td></tr>';
                                                 }
 
-                                                $stmt->close();
-                                                $conn->close();
+                                                mysqli_close($conn);
                                                 ?>
                                             </tbody>
-
                                         </table>
-
-
-
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Details Modal -->
+        <div class="modal fade" id="branchModal" tabindex="-1" role="dialog" aria-labelledby="branchModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="branchModalLabel">Branch Details</h5>
+                        <button type="button" class="close text-danger" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="branchDetailsForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="branchName">Branch Name</label>
+                                        <input type="text" class="form-control" id="branchName" name="branchName" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="branchMobile">Branch Mobile</label>
+                                        <input type="text" class="form-control" id="branchMobile" name="branchMobile" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="alternativeMobile">Alternative Mobile</label>
+                                        <input type="text" class="form-control" id="alternativeMobile" name="alternativeMobile" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="place">Place</label>
+                                        <input type="text" class="form-control" id="place" name="place" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="username">Username</label>
+                                        <input type="text" class="form-control" id="username" name="username" readonly>
+                                    </div>
+                                </div>
+                                <!-- <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="password">Password</label>
+                                        <input type="password" class="form-control" id="password" name="password" readonly>
+                                    </div>
+                                </div> -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="totalExpense">Total Expense Amount</label>
+                                        <input type="number" class="form-control" id="totalExpense" name="totalExpense" step="0.01" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="paidCommission">Paid Commission</label>
+                                        <input type="number" class="form-control" id="paidCommission" name="paidCommission" step="0.01" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="toPaidCommission">To Paid Commission</label>
+                                        <input type="number" class="form-control" id="toPaidCommission" name="toPaidCommission" step="0.01" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="address">Address</label>
+                                        <textarea class="form-control" id="address" name="address" rows="3" readonly></textarea>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
@@ -167,7 +249,11 @@
 
     </div>
 
-    <!-- Select2 Fileter -->
+    <!-- Required JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Select2 Filter -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Table Filter -->

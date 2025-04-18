@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Courier</title>
+    <title>Zenith</title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/images/favicon.png">
     <!-- <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous"> -->
@@ -54,19 +54,11 @@
                             <div class="card-body pt-5">
                                 <a class="text-center" href="#">
                                     <div class="row">
-                                        <div class="col-sm-1">
-                                            &nbsp;
+                                        
+                                        <div class="col-sm-12">
+                                            <h4 class="logo-title">ZENITH TRAVELS</h4>
                                         </div>
-                                        <div class="col-sm-3">
-                                            <!-- <b class="logo-abbr"><img class="logo-img" src="images/Zenith_Logo_Compact.png" alt=""> </b> -->
-
-                                        </div>
-                                        <div class="col-sm-5">
-                                            <h4 class="logo-title pull-left">COURIER</h4>
-                                        </div>
-                                        <div class="col-sm-3">
-                                            &nbsp;
-                                        </div>
+                                       
                                     </div>
                                     <!-- <span class="brand-title">
                                         <img class="logo" src="images/ZENITH_LOGO_1.png" alt="">
@@ -97,13 +89,9 @@
                                     <button class="btn login-form__btn w-100" onclick="validateLogin()">Sign In</button>
                                 </div> -->
                                 <div class="row">
-                                    <div class="col-sm-2">&nbsp;</div>
-                                    <div class="col-sm-8">
-                                        <p class="mt-5 login-form__footer pull-left">Reaching The Highest Point Of Financial Success</p>
+                                    <div class="col-sm-12" style="text-align: center;">
+                                        <p class="mt-5 login-form__footer">Empowred By <b>ZENITH</b> Technologies</p>
                                     </div>
-                                    <div class="col-sm-2">&nbsp;</div>
-                                    <!-- <p class="mt-5 login-form__footer pull-left">Dont have account? <a href="agentRegister.php" class="text-primary">Sign Up</a> now</p>
-                                    <p class="mt-5 login-form__footer pull-right"><a href="agentForgotPassword.php" class="text-primary">Forgot Password</a></p> -->
                                 </div>
                             </div>
                         </div>

@@ -6,7 +6,7 @@ if (isset($_GET['id'])) {
     $id = $_GET['id'];
 
     // Use prepared statements for safety
-    $stmt = $conn->prepare("SELECT * FROM customer_account WHERE CUSTOMER_ID = ?");
+    $stmt = $conn->prepare("SELECT * FROM v_customer_account WHERE CUSTOMER_ID = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
 
@@ -133,11 +133,9 @@ if (isset($_GET['id'])) {
             },
             success: function(response) {
                 console.log('server response:',response)
-                if (response.toString().startsWith("Update Successful")) {
-
+                if (response.toString().startsWith("Insert Successful")) {
                     alert("✔️ Payment Update Successfully!");
                     window.location.href = 'customer_account.php';
-                
                 } else {
                     alert("🚨 Some error had occured. \nPlease try again");
                     return false;

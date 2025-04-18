@@ -1,9 +1,11 @@
 <?php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include 'dbConn.php';
 
-require_once 'CaesarCipher.php';
+// require_once 'CaesarCipher.php';
 ?>
 
 <head>
@@ -336,7 +338,7 @@ require_once 'CaesarCipher.php';
                 </ul>
             </li>
 
-            <li class="sub-menu for-marketing" id="report-list">
+            <li class="sub-menu for-marketing d-none" id="report-list">
 
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fa fa-university font-medium menu-icon"></i> <span class="nav-text">Report</span>
@@ -346,20 +348,49 @@ require_once 'CaesarCipher.php';
                     <li><a href="reportPaymentWise.php">Payment - Branch Wise</a></li>
                 </ul>
             </li>
-            <li class="sub-menu for-marketing" id="report-list">
+            <li class="sub-menu for-marketing" id="accounts-list">
 
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
-                    <i class="fa fa-money font-medium menu-icon"></i> <span class="nav-text">Account</span>
+                    <i class="fa fa-inr font-medium menu-icon"></i> <span class="nav-text">Accounts</span>
                 </a>
+                <ul class="sub d-none" id="admin-accounts">
+                    <li class="sub-menu">
+                        <a href="javascript:;" class="has-arrow">
+                            <i class="fa fa-bullhorn font-medium menu-icon"></i>
+                            <span>Admin Accounts</span>
+                        </a>
+                        <ul class="sub">
+                            <li><a href="accounts.php">Accounts</a></li>
+                            <li><a href="BranchOutstandingAccount.php">Outstanding Accounts</a></li>
+                        </ul>
+                    </li>
+                </ul>
                 <ul class="sub">
-                    <li><a href="BranchAccount.php">Brach Account</a></li>
-                    <li><a href="accounts.php">Accounts</a></li>
-                    <li><a href="settled_account.php">Settled Account</a></li>
-
-
+                    <li class="sub-menu">
+                        <a href="javascript:;" class="has-arrow">
+                            <i class="fa fa-bullhorn font-medium menu-icon"></i>
+                            <span>Branch</span>
+                        </a>
+                        <ul class="sub">
+                            <li><a href="BranchAccount.php">Branch Accounts</a></li>
+                            <li><a href="settled_account.php">Settled Accounts</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="sub">
+                    <li class="sub-menu">
+                        <a href="javascript:;" class="has-arrow">
+                            <i class="fa fa-bullhorn font-medium menu-icon"></i>
+                            <span>Customer</span>
+                        </a>
+                        <ul class="sub">
+                            <li><a href="customer_account.php">Customer Account</a></li>
+                            <li><a href="customer_transaction.php">Transactions</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
-            <li class="sub-menu for-marketing" id="report-list">
+            <li class="sub-menu for-marketing d-none" id="report-list">
 
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fa fa-money font-medium menu-icon"></i> <span class="nav-text">Customer Account</span>
@@ -403,6 +434,7 @@ require_once 'CaesarCipher.php';
             $("#admin-list").show();
             $("#production-list").show();
             $("#report-list").show();
+            $("#admin-accounts").removeClass("d-none");
         } else {
             $("#admin-list").hide();
             $("#report-list").hide();

@@ -60,7 +60,29 @@ if (isset($_POST['isNewBooking'])) {
     $cdate = date('Y-m-d');
     $datePart = date('Ymd');
     $customer = $_POST['customer'];
-    $getCustomerIdQuery = "SELECT CUSTOMER_ID FROM customer_details WHERE CUSTOMER_NAME = '$customer'";
+    $mobile = $_POST['mobile'];
+    $deliveryTo = $_POST['deliveryTo'];
+    $deliveryMobile = $_POST['deliveryMobile'];
+    $fromPlace = $_POST['fromPlace'];
+    $fromMobile = $_POST['fromMobile'];
+    $toPlace = $_POST['toPlace'];
+    $toMobile = $_POST['toMobile'];
+    $noOfQty = $_POST['noOfQty'];
+    $itemsAndQuantityDetails = $_POST['itemsAndQuantityDetails'];
+    $qtyDescription = empty($_POST['qtyDescription']) ? "" : $_POST['qtyDescription'];
+    $paymentType = $_POST['paymentType'];
+    $totalAmount = $_POST['totalAmount'];
+    $transportationCharge = $_POST['transportationCharge'];
+    $loadingCharge = empty($_POST['loadingCharge']) ? 0 : $_POST['loadingCharge'];
+    $additionalCharge = empty($_POST['additionalCharge']) ? 0 : $_POST['loadingCharge'];
+    $totalAmount = $_POST['totalAmount'];
+    $goodsValue = $_POST['goodsValue'];
+    $deliveryMethod = $_POST['deliveryMethod'];
+
+    $fromPlaceID = "";
+    $toPlaceID = "";
+
+    $getCustomerIdQuery = "SELECT CUSTOMER_ID FROM customer_details WHERE MOBILE = '$mobile'";
     $customerId = 0;
     $result = mysqli_query($conn, $getCustomerIdQuery);
     if (mysqli_num_rows($result) > 0) {
@@ -68,10 +90,6 @@ if (isset($_POST['isNewBooking'])) {
             $customerId = $row['CUSTOMER_ID'];
         }
     }
-    $mobile = $_POST['mobile'];
-    $deliveryTo = $_POST['deliveryTo'];
-    $deliveryMobile = $_POST['deliveryMobile'];
-    $fromPlace = $_POST['fromPlace'];
 
     $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
     $stmt->bind_param("s", $fromPlace);
@@ -84,10 +102,6 @@ if (isset($_POST['isNewBooking'])) {
         $fromPlaceID = null;
     }
 
-
-    $fromMobile = $_POST['fromMobile'];
-    $toPlace = $_POST['toPlace'];
-
     $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
     $stmt->bind_param("s", $toPlace);
     $stmt->execute();
@@ -98,30 +112,48 @@ if (isset($_POST['isNewBooking'])) {
         $toPlaceID = null;
     }
 
-    $toMobile = $_POST['toMobile'];
-    $fromPlaceID = $fromPlaceID;
-    $toPlaceID = $toPlaceID;
-    $noOfQty = $_POST['noOfQty'];
-    $itemsAndQuantityDetails = $_POST['itemsAndQuantityDetails'];
-    $qtyDescription = empty($_POST['qtyDescription']) ? "" : $_POST['qtyDescription'];
-    $paymentType = $_POST['paymentType'];
-    $totalAmount = $_POST['totalAmount'];
+    $isAccount = $paymentType === "ACCOUNT" ? 1 : 0;
+    if ($customerId == 0) { // New Customer
+        $response = $dbOperator->insertData('customer_details', array(
+            'CUSTOMER_NAME' => $customer,
+            'MOBILE' => $mobile,
+            'IS_ACCOUNT' => $isAccount,
+            'BRANCH_ID' => $fromPlaceID
+        ));
+        $customerId = trim(end(explode('-', $response)));
 
+        if ($paymentType == "ACCOUNT") {
+            $response = $dbOperator->insertData('customer_account', array(
+                'CUSTOMER_ID' => $customerId,
+                'OUTSTANDING_AMOUNT' => $totalAmount
+            ));
+        }
+    } elseif ($customerId > 0) { // Existing Customer
+        $updateQuery = "UPDATE customer_details SET IS_ACCOUNT = $isAccount WHERE CUSTOMER_ID = $customerId";
+        mysqli_query($conn, $updateQuery);
 
-    $transportationCharge = $_POST['transportationCharge'];
-    $loadingCharge = empty($_POST['loadingCharge']) ? 0 : $_POST['loadingCharge'];
-    $additionalCharge = empty($_POST['additionalCharge']) ? 0 : $_POST['loadingCharge'];
-    $totalAmount = $_POST['totalAmount'];
-    $goodsValue = $_POST['goodsValue'];
-    $deliveryMethod = $_POST['deliveryMethod'];
+        $stmt = $conn->prepare("SELECT COUNT(*) AS CNT FROM customer_account WHERE CUSTOMER_ID = ?");
+        $stmt->bind_param("i", $customerId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $count = $row['CNT'];
+        } else {
+            $count = 0;
+        }
 
-    // $notes = empty($_POST['notes']) ? "" : $_POST['notes'];
-    "goodsValue: " . $goodsValue;
+        if ($count == 0) {
+            $insertQuery = "INSERT INTO customer_account (CUSTOMER_ID, OUTSTANDING_AMOUNT) VALUES ('$customerId', $totalAmount)";
+            mysqli_query($conn, $insertQuery);
+        } else {
+            $updateQuery = "UPDATE customer_account SET OUTSTANDING_AMOUNT = OUTSTANDING_AMOUNT + $totalAmount WHERE CUSTOMER_ID = $customerId";
+            mysqli_query($conn, $updateQuery);
+        }
+    }
+
     try {
         if (isset($conn)) {
-
-            mysqli_begin_transaction($conn);
-
+            // mysqli_begin_transaction($conn);
             $lrNumber = getLrNumber($conn);
 
             $bookingData = array(
@@ -153,75 +185,10 @@ if (isset($_POST['isNewBooking'])) {
                 'STATUS' => 0
             );
 
-
-            echo $response = $dbOperator->insertData("booking_details", $bookingData);
-            $responseParts = explode('-', $response);
-            $bookingId = trim(end($responseParts));
-            mysqli_commit($conn);
+            $response = $dbOperator->insertData("booking_details", $bookingData);
+            $bookingId = trim(end(explode('-', $response)));
+            // mysqli_commit($conn);
             print_r($bookingId);
-
-
-            // Branch ID
-            $branchId = $fromPlaceID;
-
-            if ($branchId) {
-                // Check if customer exists
-                $stmt = $conn->prepare("SELECT * FROM customer_details WHERE CUSTOMER_NAME = ? AND MOBILE = ? AND BRANCH_ID = ?");
-                $stmt->bind_param("ssi", $customer, $mobile, $branchId);
-                $stmt->execute();
-                $checkCustomerResult = $stmt->get_result();
-
-                $customerData = array(
-                    "BRANCH_ID" => $branchId,
-                    "CUSTOMER_NAME" => $customer,
-                    "MOBILE" => $mobile,
-                    "IS_ACCOUNT" => 1,
-                    "STATUS" => 0
-                );
-
-                if ($checkCustomerResult->num_rows > 0) {
-                    $existingCustomer = $checkCustomerResult->fetch_assoc();
-                    $customerId = $existingCustomer['CUSTOMER_ID'];
-
-             
-                    $dbOperator->updateData('customer_details', $customerData, ["CUSTOMER_ID" => $customerId]);
-                } else {
-                    $customerId = $dbOperator->insertData('customer_details', $customerData);
-                }
-
-                // Update/Insert into customer_account
-                if ($paymentType === "ACCOUNT" && $customerId) {
-                    $stmt = $conn->prepare("SELECT * FROM customer_account WHERE CUSTOMER_ID = ?");
-                    $stmt->bind_param("i", $customerId);
-                    $stmt->execute();
-                    $accountResult = $stmt->get_result();
-
-                    if ($accountResult->num_rows > 0) {
-                        $account = $accountResult->fetch_assoc();
-                        $outstandingAmount = $account['OUTSTANDING_AMOUNT'] + $totalAmount;
-
-                        $accountData = array(
-                            "CUSTOMER_ID" => $customerId,
-                            "CUSTOMER_NAME" => $customer,
-                            "OUTSTANDING_AMOUNT" => $outstandingAmount,
-                            "STATUS" => 0
-                        );
-
-                        // ✅ Pass conditions as array
-                        $dbOperator->updateData('customer_account', $accountData, ["CUSTOMER_ID" => $customerId]);
-                    } else {
-                        $accountData = array(
-                            "BRANCH_ID" => $branchId,
-                            "CUSTOMER_ID" => $customerId,
-                            "CUSTOMER_NAME" => $customer,
-                            "OUTSTANDING_AMOUNT" => $totalAmount,
-                            "STATUS" => 0
-                        );
-
-                        $dbOperator->insertData('customer_account', $accountData);
-                    }
-                }
-            }
         }
     } catch (Exception $e) {
 
@@ -544,38 +511,21 @@ if (isset($_POST['revertShipinward'])) {
 }
 
 if (isset($_POST['newCustomerName'])) {
-    $mobileNumber = $_POST['mobileNumber'];
+    /* $mobileNumber = $_POST['mobileNumber'];
     $newCustomerName = $_POST['newCustomerName'];
-    //    $insertQuery = "INSERT INTO customer_details (CUSTOMER_NAME) VALUES ('$newCustomerName')";
-    /*$insertQuery = "INSERT INTO customer_details (CUSTOMER_NAME)
-                    SELECT * FROM (SELECT '$newCustomerName') AS tmp
-                    WHERE NOT EXISTS (
-                        SELECT CUSTOMER_NAME FROM customer_details WHERE CUSTOMER_NAME = '$newCustomerName'
-                    ) LIMIT 1";*/
-
-
-    // $data = array(
-    //     'CUSTOMER_NAME' => $newCustomerName,
-    //     'MOBILE' => $mobileNumber
-    // );
-    // $where = array(
-    //     'MOBILE' => $mobileNumber
-    // );
-    // $dbOperator->insertData("customer_details", $data, $where);
-
-
+    
     $updateQuery = "
                         UPDATE customer_details SET
                           CUSTOMER_NAME = '$newCustomerName'
                         WHERE MOBILE = '$mobileNumber'
                    ";
-    mysqli_query($conn, $updateQuery);
+    mysqli_query($conn, $updateQuery); */
     echo "inserted";
 }
 
 if (isset($_POST['updateMobileNumber'])) {
     //    $customerName = $_POST['customerName'];
-    $mobileNumber = $_POST['mobileNumber'];
+    /* $mobileNumber = $_POST['mobileNumber'];
 
     $data = array(
         'MOBILE' => $mobileNumber,
@@ -592,7 +542,7 @@ if (isset($_POST['updateMobileNumber'])) {
                             SELECT MOBILE FROM customer_details WHERE MOBILE = '$mobileNumber'
                         ) LIMIT 1
                    ";
-    mysqli_query($conn, $upsertQuery);
+    mysqli_query($conn, $upsertQuery); */
 }
 
 if (isset($_POST['getBookingDetailsUnderCBEHub'])) {
@@ -668,45 +618,17 @@ if (isset($_POST['UpdatePayment'])) {
     $notes = $_POST['notes'];
     $newbalance = $_POST['newbalance'];
 
-    
-    $stmt = $conn->prepare("SELECT PAID_AMOUNT, BRANCH_ID FROM customer_account WHERE CUSTOMER_ID = ?");
-    $stmt->bind_param("s", $customerId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $oldPaidAmt = $row['PAID_AMOUNT'];
-        $branchId = $row['BRANCH_ID'];
-    } else {
-        $oldPaidAmt = 0; 
-    }
-
-
-    
-
-    
-
-
-    $data = array(
-        'PAID_AMOUNT' => $paidAmount + $oldPaidAmt,
-        'PAYMENT_TYPE' => $paymentType,
-        'NOTES' => $notes,
-        );
-       echo $dbOperator->updateData('customer_account', $data, ["CUSTOMER_ID" => $customerId]);
-
+    $updateQuery = "UPDATE customer_account SET PAID_AMOUNT = PAID_AMOUNT + $paidAmount WHERE CUSTOMER_ID = $customerId";
+    mysqli_query($conn, $updateQuery);
 
     $data1 = array(
-        'BRANCH_ID' => $branchId,
         'CUSTOMER_ID' => $customerId,
         'BALANCE_AMOUNT' => $balanceamt,
         'PAID_AMOUNT' => $paidAmount,
         'PAYMENT_TYPE' => $paymentType,
         'NOTES' => $notes,
-        'NEW_BALANCE' =>$newbalance,
-        'status' =>0
-        );
-
-      $dbOperator->insertData('customer_transaction',$data1);
-
-    }
+        'NEW_BALANCE' => $newbalance,
+        'status' => 0
+    );
+    echo $dbOperator->insertData('customer_transaction', $data1);
+}

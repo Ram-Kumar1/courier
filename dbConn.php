@@ -4,7 +4,7 @@
 $dbhost = "localhost";
 $dbuser = "root";
 $dbpass = "";
-$dbname = "courier-new";
+$dbname = "jstar";
 
 // cloud
 // $dbuser = "litzp5lx_finnest";
