@@ -56,7 +56,7 @@ $sql = "SELECT * FROM branch_details WHERE PLACE != '' AND LOWER(BRANCH_NAME) !=
                                                             <th rowspan="2">Address</th>
                                                             <th rowspan="2">User Name</th>
                                                             <th rowspan="2">Password</th>
-                                                            <th rowspan="2">Commission</th>
+                                                     
                                                             <th rowspan="2">Paid Commission</th>
                                                             <th rowspan="2">ToPaid Commission</th>
                                                             <th colspan="2" style="text-align: center;">Expense</th>
@@ -64,10 +64,7 @@ $sql = "SELECT * FROM branch_details WHERE PLACE != '' AND LOWER(BRANCH_NAME) !=
                                                             <th rowspan="2" style="text-align: center;">Edit</th>
                                                             <th rowspan="2" style="text-align: center;">Delete</th>
                                                         </tr>
-                                                        <tr>
-                                                            <th>Description</th>
-                                                            <th>Amount</th>
-                                                        </tr>
+                                                     
                                                     </thead>
                                                     <tbody>
                                                         <?php
@@ -93,7 +90,7 @@ $sql = "SELECT * FROM branch_details WHERE PLACE != '' AND LOWER(BRANCH_NAME) !=
                                                                 <td><?php echo $row['ADDRESS']; ?></td>
                                                                 <td><?php echo $row['USER_NAME']; ?></td>
                                                                 <td><?php echo $row['PASSWORD']; ?></td>
-                                                                <td><?php echo $row['COMMISSION'] ?? '-'; ?></td>
+                                                    
                                                                 <td><?php echo $row['PAID_COMMISSION'] ?? '-'; ?></td>
                                                                 <td><?php echo $row['TOPAID_COMMISSION'] ?? '-'; ?></td>
                                                                 <td><?php echo !empty($descriptions) ? implode('<br>', $descriptions) : '-'; ?></td>

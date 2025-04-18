@@ -121,7 +121,7 @@ if (isset($_POST['editPlace'])) {
 
 // addBranchDetails
 if (isset($_POST['addBranchDetails'])) {
-  
+
     // Sanitize inputs
     $inputs = [
         'branchName',
@@ -175,6 +175,10 @@ if (isset($_POST['addBranchDetails'])) {
         }
     }
 
+    if ($isAgent != 1) {
+        $bookingCommission = 0;
+        $receivedCommission = 0;
+    }
     // Prepare data for insertion
     $data = [
         "BRANCH_NAME" => $branchName,
@@ -184,8 +188,8 @@ if (isset($_POST['addBranchDetails'])) {
         "PLACE" => $branchPlace,
         "USER_NAME" => $userName,
         "PASSWORD" => $password,
-        "PAID_COMMISSION" =>$bookingCommission,
-        "TOPAID_COMMISSION" =>$receivedCommission ,
+        "PAID_COMMISSION" => $bookingCommission,
+        "TOPAID_COMMISSION" => $receivedCommission,
         "EXPENSE" => !empty($expenses) ? json_encode($expenses) : null,
         "TOTAL_EXPENSE_AMOUNT" => $totalExpenseAmount > 0 ? $totalExpenseAmount : null,
         "STATUS" => 0,
@@ -326,7 +330,7 @@ if (isset($_POST['addDriver'])) {
     $driverLicense = $_POST['driverLicense'];
     $vehicleno = $_POST['vehicleno'];
     $description = $_POST['description'];
-   
+
 
     $selectCondition = array(
         "MOBILE" => $driverMobile
@@ -343,7 +347,7 @@ if (isset($_POST['addDriver'])) {
             "LICENSE" => $driverLicense,
             "VEHICLE_NUMBER" => $vehicleno,
             "VEHICLE_DESCRIPTION" => $description
-           
+
 
         );
         echo $dbOperator->insertData("driver_details", $data);
@@ -373,7 +377,7 @@ if (isset($_POST['editdriver'])) {
             "LICENSE" => $driverLicense,
             "VEHICLE_NUMBER" => $vehicleno,
             "VEHICLE_DESCRIPTION" => $description,
-           
+
         );
         echo $dbOperator->updateData("driver_details", $data, ["DRIVER_ID" => $driverid]);
     }
@@ -436,7 +440,7 @@ if (isset($_POST['deleteCustomer'])) {
 
 //Add Item 
 if (isset($_POST['addItem'])) {
-    $ItemName= $_POST['ItemName'];
+    $ItemName = $_POST['ItemName'];
     $selectCondition = array(
         "ITEM_NAME" => $ItemName
     );
@@ -468,18 +472,17 @@ if (isset($_POST['editItem'])) {
     $resultArray = json_decode($jsonString);
     $rowCount = count($resultArray);
 
-   
-    
-        $conditions = array(
-            "ITEM_ID" => $ItemId
-        );
 
-        $data = array(
-            "ITEM_NAME" => $ItemName
-        );
 
-        echo $dbOperator->updateData("items", $data, $conditions);
-    
+    $conditions = array(
+        "ITEM_ID" => $ItemId
+    );
+
+    $data = array(
+        "ITEM_NAME" => $ItemName
+    );
+
+    echo $dbOperator->updateData("items", $data, $conditions);
 }
 
 
@@ -519,9 +522,9 @@ if (isset($_POST['deleteItem'])) {
 //         "IS_REQUEST" => 1
 //     );
 
-    
+
 //     echo $dbOperator->updateData("branch_account", $data, ["BRANCH_ACCOUNT_ID" => $branchAccountId]);
-    
+
 // }
 
 //Approvel
@@ -549,7 +552,6 @@ if (isset($_POST['Calcel'])) {
 
     );
     echo $dbOperator->updateData("branch_account", $data, ["BRANCH_ACCOUNT_ID" => $id]);
-
 }
 
 

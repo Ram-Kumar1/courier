@@ -91,24 +91,52 @@ include 'dbConn.php';
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                $query = "SELECT * FROM v_branch_accounts WHERE BALANCE > 0 ORDER BY MONTH DESC";
+                                                $userName = $_SESSION['userName'] ?? null;
+                                                $branchName = $_SESSION['admin'] ?? null;
+                                                $branchId = null;
+
+                                                if (strtolower($userName)== "admin") {
+                                                    // Admin can view all branches
+                                                    $query = "SELECT * FROM v_branch_accounts WHERE BALANCE > 0 ORDER BY MONTH DESC";
+                                                } else {
+                                                    // Branch user - get their branch ID
+                                                    if ($branchName) {
+                                                        $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
+                                                        $stmt->bind_param("s", $branchName);
+                                                        $stmt->execute();
+                                                        $result = $stmt->get_result();
+
+                                                        if ($row = $result->fetch_assoc()) {
+                                                            $branchId = (int)$row['BRANCH_OFFICE_ID'];
+                                                        } else {
+                                                            echo "<tr><td colspan='11' class='text-center'>Branch not found</td></tr>";
+                                                            exit;
+                                                        }
+
+                                                        $stmt->close();
+
+                                                        // Filter records for branch
+                                                        $query = "SELECT * FROM v_branch_accounts WHERE BRANCH_ID = $branchId AND BALANCE > 0 ORDER BY MONTH DESC";
+                                                    } else {
+                                                        echo "<tr><td colspan='11' class='text-center'>Branch name not set</td></tr>";
+                                                        exit;
+                                                    }
+                                                }
+
                                                 $result = mysqli_query($conn, $query);
 
-                                                // Initialize sum variables
+                                                // Totals
                                                 $totalOutstanding = 0;
                                                 $totalPaid = 0;
                                                 $totalBalance = 0;
 
                                                 if (!$result) {
-                                                    die("Query failed: " . mysqli_error($conn));
-                                                }
-
-                                                if (mysqli_num_rows($result) > 0) {
+                                                    echo "<tr><td colspan='11' class='text-center'>Query failed: " . htmlspecialchars(mysqli_error($conn)) . "</td></tr>";
+                                                } elseif (mysqli_num_rows($result) > 0) {
                                                     $sno = 0;
                                                     while ($row = mysqli_fetch_assoc($result)) {
                                                         $sno++;
 
-                                                        // Add to totals
                                                         $totalOutstanding += $row['ADMIN_OUTSTANDING_AMOUNT'] ?? 0;
                                                         $totalPaid += $row['PAID_AMOUNT'] ?? 0;
                                                         $totalBalance += $row['BALANCE'] ?? 0;
@@ -124,20 +152,20 @@ include 'dbConn.php';
                                                         if ($month && $year && $branchId) {
                                                             $date = DateTime::createFromFormat('!m', $month);
                                                             echo '
-                                                            <a href="#" data-toggle="modal" data-target="#branchModal" 
-                                                                data-month="' . htmlspecialchars($month) . '" 
-                                                                data-year="' . htmlspecialchars($year) . '" 
-                                                                data-branch="' . htmlspecialchars($branchId) . '"
-                                                                data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
-                                                                data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
-                                                                data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
-                                                                data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
-                                                                data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
-                                                                data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
-                                                                data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
-                                                                data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
-                                                                data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
-                                                                data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
+                <a href="#" data-toggle="modal" data-target="#branchModal" 
+                    data-month="' . htmlspecialchars($month) . '" 
+                    data-year="' . htmlspecialchars($year) . '" 
+                    data-branch="' . htmlspecialchars($branchId) . '"
+                    data-branchname="' . htmlspecialchars($row['BRANCH_NAME'] ?? '') . '"
+                    data-mobile="' . htmlspecialchars($row['BRANCH_MOBILE'] ?? '') . '"
+                    data-altmobile="' . htmlspecialchars($row['ALTERNATIVE_MOBILE'] ?? '') . '"
+                    data-place="' . htmlspecialchars($row['PLACE'] ?? '') . '"
+                    data-username="' . htmlspecialchars($row['USER_NAME'] ?? '') . '"
+                    data-password="' . htmlspecialchars($row['PASSWORD'] ?? '') . '"
+                    data-paidcommission="' . htmlspecialchars($row['PAID_COMMISSION'] ?? '') . '"
+                    data-topaidcommission="' . htmlspecialchars($row['TOPAID_COMMISSION'] ?? '') . '"
+                    data-address="' . htmlspecialchars($row['ADDRESS'] ?? '') . '"
+                    data-totalexpense="' . htmlspecialchars($row['TOTAL_EXPENSE_AMOUNT'] ?? '') . '">';
                                                             echo htmlspecialchars($date->format('M') . '-' . $year);
                                                             echo '</a>';
                                                         }
@@ -156,13 +184,13 @@ include 'dbConn.php';
                                                         echo "</tr>";
                                                     }
 
-                                                    // Add summary row
+                                                    // Totals row
                                                     echo '<tr class="total-row" style="font-weight:bold; background-color:#f5f5f5;">';
                                                     echo '<td colspan="7" class="text-right">Total:</td>';
                                                     echo '<td>' . number_format($totalOutstanding, 2) . '</td>';
                                                     echo '<td>' . number_format($totalPaid, 2) . '</td>';
                                                     echo '<td>' . number_format($totalBalance, 2) . '</td>';
-                                                    echo '<td></td>'; // Empty cell for the Edit column
+                                                    echo '<td></td>';
                                                     echo '</tr>';
                                                 } else {
                                                     echo '<tr><td colspan="11" class="text-center">No records found</td></tr>';
@@ -171,6 +199,7 @@ include 'dbConn.php';
                                                 mysqli_close($conn);
                                                 ?>
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>
@@ -224,7 +253,7 @@ include 'dbConn.php';
                                         <input type="text" class="form-control" id="username" name="username" readonly>
                                     </div>
                                 </div>
-                             
+
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="totalExpense">Total Expense Amount</label>
@@ -269,13 +298,13 @@ include 'dbConn.php';
 
     </div>
 
-<!-- Select2 Fileter -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- Table Filter -->
-<script src="./js/ddtf.js"></script>
-<!-- Prevent Number Scrolling -->
-<script src="./js/chits/numberInputPreventScroll.js"></script>
+    <!-- Select2 Fileter -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Table Filter -->
+    <script src="./js/ddtf.js"></script>
+    <!-- Prevent Number Scrolling -->
+    <script src="./js/chits/numberInputPreventScroll.js"></script>
 
     <script>
         $(document).ready(function() {

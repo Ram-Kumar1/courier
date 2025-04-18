@@ -267,11 +267,11 @@ if (isset($_GET['lr_Id'])) {
                                                         <i class="fa fa-backward" aria-hidden="true" style="color: black"></i>
                                                         Back
                                                     </button>&nbsp;
-                                                    <button type="button" name="button" id="email-btn" class="btn btn-primary pull-right m-2" style="margin-right: 5px;" data-toggle="modal" data-target="#email-modal">
-                                                        <!-- onclick="sendEmail()" -->
+                                                    <!-- <button type="button" name="button" id="email-btn" class="btn btn-primary pull-right m-2" style="margin-right: 5px;" data-toggle="modal" data-target="#email-modal">
+                                                  
                                                         <i class="fa fa-envelope-o" aria-hidden="true" style="color: white"></i>
                                                         Mail
-                                                    </button>&nbsp;
+                                                    </button>&nbsp; -->
                                                 </div>
                                             </div>
 
@@ -424,7 +424,7 @@ if (isset($_GET['lr_Id'])) {
 
                                                                         <div class="col-sm-12">
                                                                             <div class="form-group">
-                                                                                <input type="hidden" class="form-control" name="invoiceId" id="invoiceId" value="<?php echo $_GET['invoiceId']; ?>" />
+                                                                                <input type="hidden" class="form-control" name="invoiceId" id="invoiceId" value="<?php echo $lrNumber; ?>" />
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-sm-12">

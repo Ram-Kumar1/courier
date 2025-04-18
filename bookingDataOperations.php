@@ -668,16 +668,21 @@ if (isset($_POST['UpdatePayment'])) {
     $notes = $_POST['notes'];
     $newbalance = $_POST['newbalance'];
 
-    $getPaidamt = "SELECT PAID_AMOUNT FROM customer_account WHERE CUSTOMER_ID = $customerId";
-    $result = mysqli_query($conn, $getPaidamt);
     
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
+    $stmt = $conn->prepare("SELECT PAID_AMOUNT, BRANCH_ID FROM customer_account WHERE CUSTOMER_ID = ?");
+    $stmt->bind_param("s", $customerId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
         $oldPaidAmt = $row['PAID_AMOUNT'];
         $branchId = $row['BRANCH_ID'];
     } else {
         $oldPaidAmt = 0; 
     }
+
+
     
 
     

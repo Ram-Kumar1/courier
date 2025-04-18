@@ -65,7 +65,7 @@
                                             placeholder="Enter Place Name" name="mobile" />
                                     </div>
                                     <button class="btn btn-success mb-4" style="margin-left: 40%" onclick="addCustomer()">
-                                        <i class="fa fa-floppy-o" aria-hidden="true"></i> Submit
+                                        <i class="fa fa-floppy-o font-medium menu-icon" aria-hidden="true"></i> Submit
                                     </button>
                                     <div id="table-data" class="table-responsive filterable max-30">
                                         <table id="data-table" class="table table-striped tableFixHead">

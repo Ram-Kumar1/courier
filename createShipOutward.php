@@ -318,7 +318,7 @@ $date = date('Y-m-d', strtotime($date_1));
                                                         <thead>
                                                             <tr class="filters" style="color:#0c1211;">
                                                                 <th class='skip-filter' style="color:#0c1211">#</th>
-                                                                <th class='skip-filter' style="color:#0c1211; text-align: center;">Invoice&nbsp;No</th>
+                                                                <th class='skip-filter' style="color:#0c1211; text-align: center;">LR&nbsp;Number</th>
                                                                 <th class='skip-filter' style="color:#0c1211">Customer</th>
                                                                 <th class='skip-filter' style="color:#0c1211">Delivery</th>
                                                                 <th class='skip-filter' style="color:#0c1211">From</th>

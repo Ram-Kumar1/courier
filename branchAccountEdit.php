@@ -205,8 +205,8 @@ if (isset($_POST['submit'])) {
                                                             <label for="PAYAMENT_TYPE">Payment Type <span class="text-danger">*</span></label>
                                                             <select name="PAYAMENT_TYPE" id="PAYMENT_TYPE" class="form-control">
                                                                 <option>-- SELECT PAYMENT TYPE --</option>
-                                                                <option value="CASH" <?php echo ($row['PAYMENT_TYPE'] === 'CASE') ? 'selected' : 'CASE'; ?>>Cash</option>
-                                                                <option value="ONLINE" <?php echo ($row['PAYMENT_TYPE'] === 'ONLINE') ? 'selected' : 'ONLINE'; ?>>Online</option>
+                                                                <option value="CASH">Cash</option>
+                                                                <option value="ONLINE">Online</option>
                                                             </select>
                                                         </div>
                                                     </div>
