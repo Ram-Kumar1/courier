@@ -144,6 +144,18 @@ if (isset($_GET['id'])) {
            
         });
     }
+
+   
+    document.getElementById('paid-amount').addEventListener('input', function () {
+        const balanceAmount = parseFloat(document.getElementById('balance-amount').value);
+        const paidAmount = parseFloat(this.value);
+
+        if (paidAmount > balanceAmount) {
+            alert('Paid Amount should not be greater than Balance Amount.');
+            this.value = '';
+        }
+    });
+
 </script>
 
 </html>
