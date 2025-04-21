@@ -84,79 +84,81 @@
                                                 <?php
                                                 $userName = $_SESSION['userName'] ?? null;
                                                 $branchName = $_SESSION['admin'] ?? null;
-                                                if (strtolower($userName)  == "admin") {
+
+                                                $branchId = null;
+                                                $getCustomerTransaction = "";
+
+                                                if (strtolower($userName) == "admin") {
+
                                                     $getCustomerTransaction = "
-    SELECT 
-        ct.*, 
-        ca.CUSTOMER_NAME 
-    FROM 
-        customer_transaction ct
-    JOIN 
-        customer_account ca ON ca.CUSTOMER_ID = ct.CUSTOMER_ID
-    ORDER BY 
-        ct.CREATED_AT DESC
-";
+                                                   SELECT ct.*, cd.CUSTOMER_NAME 
+                                                   FROM customer_transaction ct
+                                                   JOIN customer_details cd ON ct.CUSTOMER_ID = cd.CUSTOMER_ID ORDER BY ct.CREATED_AT DESC   ";
                                                 } else {
                                                     if ($branchName) {
+
                                                         $stmt = $conn->prepare("SELECT BRANCH_OFFICE_ID FROM branch_details WHERE BRANCH_NAME = ?");
                                                         $stmt->bind_param("s", $branchName);
                                                         $stmt->execute();
                                                         $result = $stmt->get_result();
-
-                                                        if ($row = $result->fetch_assoc()) {
-                                                            $branchId = $row['BRANCH_OFFICE_ID'];
-                                                        } else {
-                                                            echo "Branch not found.";
-                                                        }
-
+                                                        $branchData = $result->fetch_assoc();
                                                         $stmt->close();
+
+                                                        if ($branchData) {
+                                                            $branchId = $branchData['BRANCH_OFFICE_ID'];
+                                                            $getCustomerTransaction = "
+                                                            SELECT ct.*, cd.CUSTOMER_NAME 
+                                                            FROM customer_transaction ct
+                                                            JOIN customer_details cd ON ct.CUSTOMER_ID = cd.CUSTOMER_ID
+                                                            WHERE cd.BRANCH_ID = ?
+                                                            ORDER BY ct.CREATED_AT DESC
+                                                                ";
+                                                        } else {
+                                                            echo "<tr><td colspan='8' class='text-center'>Branch not found</td></tr>";
+                                                        }
                                                     } else {
-                                                        echo "Branch name not set.";
+                                                        echo "<tr><td colspan='8' class='text-center'>Branch name not set</td></tr>";
                                                     }
-                                                    $getCustomerTransaction = "
-                                                SELECT 
-                                                    ct.*, 
-                                                    ca.CUSTOMER_NAME 
-                                                FROM 
-                                                    customer_transaction ct
-                                                JOIN 
-                                                    customer_account ca ON ca.CUSTOMER_ID = ct.CUSTOMER_ID
-                                                WHERE 
-                                                    ct.BRANCH_ID = $branchId
-                                                ORDER BY 
-                                                    ct.CREATED_AT DESC
-                                            ";
                                                 }
-                                                $result = mysqli_query($conn, $getCustomerTransaction);
-                                                $sno = 1;
 
-                                                if ($result && mysqli_num_rows($result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($result)) {
+                                                if ($getCustomerTransaction) {
+                                                    if (isset($branchId)) {
+                                                        $stmt = $conn->prepare($getCustomerTransaction);
+                                                        $stmt->bind_param("i", $branchId);
+                                                        $stmt->execute();
+                                                        $result = $stmt->get_result();
+                                                    } else {
+                                                        $result = mysqli_query($conn, $getCustomerTransaction);
+                                                    }
+
+                                                    $sno = 1;
+                                                    if ($result && mysqli_num_rows($result) > 0) {
+                                                        while ($row = $result->fetch_assoc()) {
                                                 ?>
-                                                        <tr>
-                                                            <td><?php echo $sno++; ?></td>
-                                                            <td><?php echo strtolower(date('d-M-Y', strtotime($row['CREATED_AT']))); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['CUSTOMER_NAME']); ?></td>
-                                                            <td><?php echo $row['BALANCE_AMOUNT']; ?></td>
-                                                            <td><?php echo $row['PAYMENT_TYPE']; ?></td>
-                                                            <td><?php echo $row['PAID_AMOUNT']; ?></td>
-                                                            <td><?php echo $row['NEW_BALANCE']; ?></td>
-                                                            <td><?php echo htmlspecialchars($row['NOTES']); ?></td>
-                                                        </tr>
+                                                            <tr class="text-center">
+                                                                <td><?php echo $sno++; ?></td>
+                                                                <td><?php echo strtoupper(date('d-M-Y', strtotime($row['CREATED_AT']))); ?></td>
+                                                                <td><?php echo htmlspecialchars($row['CUSTOMER_NAME']); ?></td>
+                                                                <td><?php echo $row['BALANCE_AMOUNT']; ?></td>
+                                                                <td><?php echo $row['PAYMENT_TYPE']; ?></td>
+                                                                <td><?php echo $row['PAID_AMOUNT']; ?></td>
+                                                                <td><?php echo $row['NEW_BALANCE']; ?></td>
+                                                                <td><?php echo htmlspecialchars($row['NOTES']); ?></td>
+                                                            </tr>
                                                 <?php
+                                                        }
+                                                    } else {
+                                                        echo "<tr><td colspan='8' class='text-center'>No records found</td></tr>";
                                                     }
-                                                } else {
-                                                    echo "<tr><td colspan='8' class='text-center'>No records found</td></tr>";
-                                                }
 
-                                                mysqli_close($conn);
+                                                    if (isset($stmt)) $stmt->close();
+                                                    mysqli_close($conn);
+                                                }
                                                 ?>
                                             </tbody>
 
+
                                         </table>
-
-
-
                                     </div>
                                 </div>
                             </div>
@@ -175,19 +177,14 @@
 
     </div>
 
-    <!-- Required JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Select2 Filter -->
+    <!-- Select2 Fileter -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Table Filter -->
     <script src="./js/ddtf.js"></script>
     <!-- Prevent Number Scrolling -->
     <script src="./js/chits/numberInputPreventScroll.js"></script>
-
-    <script>
+    <script type="text/javascript">
         $(document).ready(function() {
             // Initialize table filter
             $("#data-table").ddTableFilter();

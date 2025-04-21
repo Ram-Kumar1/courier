@@ -361,7 +361,7 @@ include 'dbConn.php';
                         </a>
                         <ul class="sub">
                             <li><a href="accounts.php">Accounts</a></li>
-                            <li><a href="BranchOutstandingAccount.php">Outstanding Accounts</a></li>
+                            <li><a href="BranchOutstandingAccounts.php">Outstanding Accounts</a></li>
                         </ul>
                     </li>
                 </ul>
